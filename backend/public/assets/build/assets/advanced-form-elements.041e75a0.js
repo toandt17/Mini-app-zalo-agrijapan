@@ -1,0 +1,1 @@
+$(function(){$("#reservation").daterangepicker(),$("#tpBasic").timepicker(),$("#tp2").timepicker({scrollDefault:"now"}),$("#tp3").timepicker(),$(document).on("click","#setTimeButton",function(){$("#tp3").timepicker("setTime",new Date)})});
