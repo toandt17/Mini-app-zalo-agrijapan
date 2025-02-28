@@ -18,7 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 'admin.php',
                 'product.php',
                 'user.php',
-                'category.php',
+                'categories.php',
+                'orders.php',
+                'payment.php',
+                'preview.php',
+                'contact.php',
+                'chart.php',
             ];
 
             $clientRoutes = [

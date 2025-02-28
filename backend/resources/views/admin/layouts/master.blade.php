@@ -28,7 +28,14 @@
 
         <!-- APP CSS & APP SCSS -->
         <link rel="preload" as="style" href="{{ asset('assets/build/assets/app.67855e29.css') }}" /><link rel="preload" as="style" href="{{ asset('assets/build/assets/app.4b443544.css') }}" /><link rel="stylesheet" href="{{ asset('assets/build/assets/app.67855e29.css') }}" /><link rel="stylesheet" href="{{ asset('assets/build/assets/app.4b443544.css') }}" />
-
+		<link href="path/to/flot.css" rel="stylesheet">
+		<!-- jQuery -->
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+		<!-- Flot Charts JS -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.pie.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.resize.min.js"></script>
+	   
 
 
 	</head>
@@ -523,7 +530,11 @@
 		<script src="{{ asset('assets/build/assets/plugins/datatable/js/jquery.dataTables.min.js') }}"></script>
 		<script src="{{ asset('assets/build/assets/plugins/datatable/js/dataTables.bootstrap5.js') }}"></script>
 		<script src="{{ asset('assets/build/assets/plugins/datatable/dataTables.responsive.min.js') }}"></script>
-
+		<script src="{{ asset('build/assets/plugins/jquery.flot/jquery.flot.js') }}"></script>
+        <script src="{{ asset('build/assets/plugins/jquery.flot/jquery.flot.pie.js') }}"></script>
+        <script src="{{ asset('build/assets/plugins/jquery.flot/jquery.flot.resize.js') }}"></script>
+		<link rel="modulepreload" href="{{ asset('build/assets/chart.flot.d2b112c5.js') }}" /><script type="module" src="build/assets/chart.flot.d2b112c5.js"></script>		
+        
 		<!-- APEX CHARTS JS -->
 		<script src="{{ asset('assets/build/assets/plugins/apexcharts/apexcharts.js') }}"></script>
 
@@ -571,7 +582,7 @@
         <script src="{{ asset('assets/build/assets/plugins/fancyuploder/jquery.fancy-fileupload.js') }}"></script>
         <script src="{{ asset('assets/build/assets/plugins/fancyuploder/fancy-uploader.js') }}"></script>
 
-
+		@yield('js')
 	</body>
 
 <!-- Mirrored from laravelui.spruko.com/dashplex/index by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 27 Feb 2025 01:25:33 GMT -->
