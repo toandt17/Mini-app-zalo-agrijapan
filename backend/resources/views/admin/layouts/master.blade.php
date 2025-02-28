@@ -559,6 +559,19 @@
          <script src="{{ asset('assets/build/assets/plugins/datatable/responsive.bootstrap5.min.js') }}"></script>
          <link rel="modulepreload" href="{{ asset('assets/build/assets/table-data.a7b3fed9.js') }}" /><script type="module" src="{{ asset('assets/build/assets/table-data.a7b3fed9.js') }}"></script>
 
+
+         <!-- INTERNAL FILEUPLOADS JS -->
+        <script src="{{ asset('assets/build/assets/plugins/fileuploads/js/fileupload.js') }}"></script>
+        <script src="{{ asset('assets/build/assets/plugins/fileuploads/js/file-upload.js') }}"></script>
+
+        <!-- INTERNAL FANCY UPLOADER JS -->
+        <script src="{{ asset('assets/build/assets/plugins/fancyuploder/jquery.ui.widget.js') }}"></script>
+        <script src="{{ asset('assets/build/assets/plugins/fancyuploder/jquery.fileupload.js') }}"></script>
+        <script src="{{ asset('assets/build/assets/plugins/fancyuploder/jquery.iframe-transport.js') }}"></script>
+        <script src="{{ asset('assets/build/assets/plugins/fancyuploder/jquery.fancy-fileupload.js') }}"></script>
+        <script src="{{ asset('assets/build/assets/plugins/fancyuploder/fancy-uploader.js') }}"></script>
+
+
 	</body>
 
 <!-- Mirrored from laravelui.spruko.com/dashplex/index by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 27 Feb 2025 01:25:33 GMT -->

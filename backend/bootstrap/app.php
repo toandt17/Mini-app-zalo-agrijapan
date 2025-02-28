@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $adminRoutes = [
                 'admin.php',
                 'product.php',
+                'user.php',
             ];
 
             $clientRoutes = [
