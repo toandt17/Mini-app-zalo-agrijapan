@@ -57,9 +57,6 @@
                             <li class="nav-sub-item">
                                 <a class="nav-sub-link" href="ecommerce-dashboard.html">Danh sách</a>
                             </li>
-                            <li class="nav-sub-item">
-                                <a class="nav-sub-link" href="ecommerce-products.html">Lịch sử sản phẩm</a>
-                            </li>
                         </ul>
                     </li>
                     <li class="nav-item">

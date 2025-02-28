@@ -18,12 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 'admin.php',
                 'product.php',
                 'user.php',
+                'category.php',
             ];
 
             $clientRoutes = [
 
             ];
-
 
             foreach ($adminRoutes as $route){
                 Route::middleware('web')
