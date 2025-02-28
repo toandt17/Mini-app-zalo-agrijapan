@@ -8,6 +8,6 @@ Route::prefix('/san-pham')->name('products.')->group(function () {
     Route::get('/them-moi', [ProductController::class, 'add'])->name('add');
     Route::get('/chinh-sua/{id}', [ProductController::class, 'edit'])->name('edit');
 });
-
+// Lấy dữ liệu sản phẩm
 Route::get('/products', [ProductController::class, 'getProducts'])->name('getProducts');
 Route::get('/export-json', [ProductController::class, 'exportToJson'])->name('exportToJson');

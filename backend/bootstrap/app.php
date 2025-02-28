@@ -41,6 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware){
+        $middleware->alias([
+            'cors' => \App\Http\Middleware\Cors::class, // Đảm bảo middleware CORS được alias
+        ]);
         //
         // $middleware->alias([
         //     'is_candidate' => CheckLoginCandidate::class
