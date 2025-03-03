@@ -8,7 +8,7 @@
             <!-- PAGE HEADER -->
             <div class="page-header">
                 <div>
-                    <h2 class="main-content-title tx-24 mg-b-5">Sản phẩm</h2>
+                    <h2 class="main-content-title tx-24 mg-b-5">Chỉnh sửa sản phẩm</h2>
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="javascript:;">Sản phẩm</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Chỉnh sửa sản phẩm</li>
@@ -29,8 +29,6 @@
             </div>
             <!-- END PAGE HEADER -->
 
-
-
             <!-- ROW -->
             <div class="row row-sm">
                 <div class="col-xl-12 col-lg-12 col-md-12">
@@ -41,19 +39,23 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <form class="row g-3 needs-validation" novalidate>
+                            <form class="row g-3 needs-validation" action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" novalidate>
+                                @csrf
+                                @method('PUT')
                                 <div class="col-md-8 position-relative">
                                     <label for="validationTooltip01" class="form-label tx-semibold">Tên sản phẩm</label>
-                                    <input type="text" class="form-control" id="validationTooltip01" placeholder="Nhập tên sản phẩm" required>
+                                    <input type="text" class="form-control" id="validationTooltip01" name="name" placeholder="Nhập tên sản phẩm" value="{{ old('name', $product->name) }}" required>
                                     <div class="valid-tooltip">
                                     Looks good!
                                     </div>
                                 </div>
                                 <div class="col-md-4 position-relative">
                                     <label for="validationTooltip04" class="form-label tx-semibold">Danh mục</label>
-                                    <select class="form-select" id="validationTooltip04" required>
+                                    <select class="form-select" id="validationTooltip04" name="category_id" required>
                                     <option selected disabled value="">Lựa chọn...</option>
-                                    <option>...</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                    @endforeach
                                     </select>
                                     <div class="invalid-tooltip">
                                     Please select a valid state.
@@ -61,33 +63,40 @@
                                 </div>
                                 <div class="col-md-6 position-relative">
                                     <label for="validationTooltip02" class="form-label tx-semibold">Giá sản phẩm</label>
-                                    <input type="text" class="form-control" id="validationTooltip02" placeholder="Nhập giá sản phẩm" required>
+                                    <input type="text" class="form-control" id="validationTooltip02" name="price" placeholder="Nhập giá sản phẩm" value="{{ old('price', $product->price) }}" required>
                                     <div class="valid-tooltip">
                                     Looks good!
                                     </div>
                                 </div>
                                 <div class="col-md-6 position-relative">
                                     <label for="validationTooltip03" class="form-label tx-semibold">Số lượng sản phẩm</label>
-                                    <input type="text" class="form-control" id="validationTooltip03" placeholder="Nhập số lượng sản phẩm" required>
+                                    <input type="text" class="form-control" id="validationTooltip03" name="quantity" placeholder="Nhập số lượng sản phẩm" value="{{ old('quantity', $product->quantity) }}" required>
                                     <div class="invalid-tooltip">
                                     Please provide a valid city.
                                     </div>
                                 </div>
                                 <div class="col-md-12 position-relative">
-                                    <label for="validationTooltip03" class="form-label tx-semibold">Môt tả</label>
-                                    <input type="text" class="form-control" id="validationTooltip03" placeholder="Nhập mô tả sản phẩm" required>
+                                    <label for="validationTooltip03" class="form-label tx-semibold">Mô tả</label>
+                                    <input type="text" class="form-control" id="validationTooltip03" name="detail" placeholder="Nhập mô tả sản phẩm" value="{{ old('detail', $product->detail) }}" required>
                                     <div class="invalid-tooltip">
                                     Please provide a valid city.
                                     </div>
                                 </div>
                                 <div class="col-md-12 position-relative">
-									<div>
-										<h6 class="main-content-label mb-1">Tải hình ảnh</h6>
-									</div>
-									<div>
-										<input id="demo" type="file" name="files" accept="image/jpg, image/jpeg, image/png, text/html, application/zip, text/css, text/js" multiple>
-									</div>
-								</div>
+                                    <div>
+                                        <h6 class="main-content-label mb-1">Tải hình ảnh</h6>
+                                    </div>
+                                    <div>
+                                        <input id="image" type="file" class="form-control" name="image" accept="image/jpg, image/jpeg, image/png" onchange="previewImage(event)">
+                                        @error('image')
+                                            <div class="text-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div id="imagePreviewContainer" style="position: relative; {{ $product->image ? '' : 'display: none;' }}">
+                                        <img id="imagePreview" src="{{ $product->image ? asset('storage/' . $product->image) : '#' }}" alt="{{ $product->name }}" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;" />
+                                        <button type="button" onclick="removeImage()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>
+                                    </div>
+                                </div>
                                 <div class="col-12">
                                     <button class="btn btn-primary" type="submit">Cập nhật</button>
                                 </div>
@@ -101,5 +110,26 @@
     </div>
 </div>
 
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function(){
+            var output = document.getElementById('imagePreview');
+            var container = document.getElementById('imagePreviewContainer');
+            output.src = reader.result;
+            container.style.display = 'block';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function removeImage() {
+        var input = document.getElementById('image');
+        var output = document.getElementById('imagePreview');
+        var container = document.getElementById('imagePreviewContainer');
+        input.value = '';
+        output.src = '#';
+        container.style.display = 'none';
+    }
+</script>
 
 @endsection

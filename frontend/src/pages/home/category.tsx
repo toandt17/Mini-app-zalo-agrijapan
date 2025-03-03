@@ -1,9 +1,23 @@
+import React, { useEffect, useState } from 'react';
 import TransitionLink from "@/components/transition-link";
-import { useAtomValue } from "jotai";
-import { categoriesState } from "@/state";
+import { Category as CategoryType } from "@/types";
+import { getTopCategories } from "@/api/categoryApi";
 
-export default function Category() {
-  const categories = useAtomValue(categoriesState);
+export default function CategoryList() {
+  const [categories, setCategories] = useState<CategoryType[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getTopCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div
@@ -21,7 +35,7 @@ export default function Category() {
           to={`/category/${category.id}`}
         >
           <img
-            src={category.image}
+            src={`http://127.0.0.1:8000/storage/${category.image}`}
             className="w-12 h-12 object-cover rounded-full bg-skeleton"
             alt={category.name}
           />

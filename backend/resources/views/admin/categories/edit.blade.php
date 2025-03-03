@@ -11,18 +11,16 @@
                     <h2 class="main-content-title tx-24 mg-b-5">Cập nhật loại sản phẩm</h2>
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="javascript:;">Loại sản phẩm</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Thêm loại sản phẩm</li>
+                        <li class="breadcrumb-item active" aria-current="page">Cập nhật loại sản phẩm</li>
                     </ol>
                 </div>
                 <div class="d-flex">
                     <div class="justify-content-center">
-                       
+
                     </div>
                 </div>
             </div>
             <!-- END PAGE HEADER -->
-
-
 
             <!-- ROW -->
             <div class="row row-sm">
@@ -34,30 +32,32 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <form class="row g-3 needs-validation" novalidate>
+                            <form class="row g-3 needs-validation" action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data" novalidate>
+                                @csrf
+                                @method('PUT')
                                 <div class="col-md-12 position-relative">
-                                    <label for="validationTooltip01" class="form-label tx-semibold">Tên loại sản phẩm</label>
-                                    <input type="text" class="form-control" id="validationTooltip01" placeholder="Nhập tên loại sản phẩm" required>
-                                    <div class="valid-tooltip">
-                                    Looks good!
+                                    <label for="name" class="form-label tx-semibold">Tên loại sản phẩm</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $category->name) }}" placeholder="Nhập tên loại sản phẩm" required>
+                                    @error('name')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-12 position-relative">
+                                    <div>
+                                        <h6 class="main-content-label mb-1">Tải hình ảnh</h6>
+                                    </div>
+                                    <div>
+                                        <input type="file" class="form-control" id="image" name="image" accept="image/jpg, image/jpeg, image/png" onchange="previewImage(event)">
+                                        <div id="imagePreviewContainer" style="position: relative; {{ $category->image ? '' : 'display: none;' }}">
+                                            <img id="imagePreview" src="{{ $category->image ? asset('storage/' . $category->image) : '#' }}" alt="{{ $category->name }}" style="max-width: 100px; height: auto; margin-top: 10px;">
+                                            <button type="button" onclick="removeImage()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>
+                                        </div>
+                                        @error('image')
+                                            <div class="text-danger">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
-                                
-                                <div class="col-md-12 position-relative">
-                                    <label for="validationTooltip03" class="form-label tx-semibold">Môt tả</label>
-                                    <input type="text" class="form-control" id="validationTooltip03" placeholder="Nhập mô tả sản phẩm" required>
-                                    <div class="invalid-tooltip">
-                                    Please provide a valid city.
-                                    </div>
-                                </div>
-                                <div class="col-md-12 position-relative">
-									<div>
-										<h6 class="main-content-label mb-1">Tải hình ảnh</h6>
-									</div>
-									<div>
-										<input id="demo" type="file" name="files" accept="image/jpg, image/jpeg, image/png, text/html, application/zip, text/css, text/js" multiple>
-									</div>
-								</div>
                                 <div class="col-12">
                                     <button class="btn btn-primary" type="submit">Lưu</button>
                                 </div>
@@ -71,5 +71,26 @@
     </div>
 </div>
 
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function(){
+            var output = document.getElementById('imagePreview');
+            var container = document.getElementById('imagePreviewContainer');
+            output.src = reader.result;
+            container.style.display = 'block';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function removeImage() {
+        var input = document.getElementById('image');
+        var output = document.getElementById('imagePreview');
+        var container = document.getElementById('imagePreviewContainer');
+        input.value = ''; // Clear the file input
+        output.src = '#'; // Reset the image source
+        container.style.display = 'none'; // Hide the preview container
+    }
+</script>
 
 @endsection

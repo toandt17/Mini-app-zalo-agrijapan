@@ -8,40 +8,31 @@ import Section from "@/components/section";
 import ShareButton from "./share-buttont";
 import RelatedProducts from "./related-products";
 import HorizontalDivider from "@/components/horizontal-divider";
+import { getProducts } from "@/api/productApi";
 
 export default function ProductDetailPage() {
-  const { id } = useParams<{ id: string }>(); // Get the product ID from the URL
-  const [products, setProducts] = useState<Product[]>([]); // Store all products
-  const [product, setProduct] = useState<Product | null>(null); // Current product
+  const { id } = useParams<{ id: string }>();
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Call useAddToCart unconditionally with a default product
-  const { addToCart } = useAddToCart(product || { id: 0, name: '', price: 0, image: '' });
+  const { addToCart } = useAddToCart(product || { id: 0, name: '', price: 0, image: '', category: { id: 0, name: '', image: '' } });
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://127.0.0.1:8000/admin/products`);
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        setProducts(data);
+        const products = await getProducts();
+        const foundProduct = products.find((p) => p.id === parseInt(id || "", 10));
+        setProduct(foundProduct || null);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching product:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    if (products.length > 0) {
-      const foundProduct = products.find((p) => p.id === parseInt(id || "", 10));
-      setProduct(foundProduct || null);
-    }
-  }, [products, id]);
+    fetchProduct();
+  }, [id]);
 
   if (loading) {
     return <div className="p-4">Đang tải...</div>;
@@ -56,7 +47,7 @@ export default function ProductDetailPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="w-full p-4 pb-2 space-y-4 bg-section">
           <img
-            src={product.image}
+            src={`http://127.0.0.1:8000/storage/${product.image}`}
             alt={product.name}
             className="w-full h-full object-cover rounded-lg"
             style={{
@@ -67,13 +58,13 @@ export default function ProductDetailPage() {
             <div className="text-xl font-bold text-primary">
               {formatPrice(product.price.toString())}
             </div>
-            {product.original_price && (
+            {product.originalPrice && (
               <div className="text-2xs space-x-0.5">
                 <span className="text-subtitle line-through">
-                  {formatPrice(product.original_price.toString())}
+                  {formatPrice(product.originalPrice.toString())}
                 </span>
                 <span className="text-danger">
-                  -{100 - Math.round((parseFloat(product.price) * 100) / parseFloat(product.original_price))}%
+                  -{100 - Math.round((parseFloat(product.price) * 100) / parseFloat(product.originalPrice))}%
                 </span>
               </div>
             )}

@@ -138,7 +138,7 @@ export const cartTotalState = atom((get) => {
   };
 });
 
-export const keywordState = atom("");
+export const keywordState = atom<string>("");
 
 export const searchResultState = atom(async (get) => {
   const keyword = get(keywordState);

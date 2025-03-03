@@ -1,11 +1,11 @@
 import { useAtomValue } from "jotai";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   categoriesStateUpwrapped,
   loadableUserInfoState,
   userInfoState,
 } from "@/state";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouteHandle } from "@/hooks";
 import { getConfig } from "@/utils/template";
 import headerIllus from "@/static/header-illus.svg";
@@ -13,6 +13,8 @@ import SearchBar from "./search-bar";
 import TransitionLink from "./transition-link";
 import { Icon } from "zmp-ui";
 import { DefaultUserAvatar } from "./vectors";
+import { Category } from "@/types";
+import { getCategories } from "@/api/categoryApi";
 
 export default function Header() {
   const categories = useAtomValue(categoriesStateUpwrapped);
@@ -20,8 +22,37 @@ export default function Header() {
   const location = useLocation();
   const [handle, match] = useRouteHandle();
   const userInfo = useAtomValue(loadableUserInfoState);
+  const { id } = useParams<{ id: string }>();
+  const [categoryName, setCategoryName] = useState<string | null>(null);
+
+  // Fetch category name if we're on a category page
+  useEffect(() => {
+    if (location.pathname.startsWith('/category/') && id) {
+      const fetchCategoryName = async () => {
+        try {
+          const allCategories = await getCategories();
+          const category = allCategories.find(c => String(c.id) === id);
+          if (category) {
+            setCategoryName(category.name);
+          }
+        } catch (error) {
+          console.error('Error fetching category:', error);
+        }
+      };
+      
+      fetchCategoryName();
+    } else {
+      setCategoryName(null);
+    }
+  }, [location.pathname, id]);
 
   const title = useMemo(() => {
+    // If we have a category name from API and we're on category page, use it
+    if (location.pathname.startsWith('/category/') && categoryName) {
+      return categoryName;
+    }
+    
+    // Otherwise use the default logic
     if (handle) {
       if (typeof handle.title === "function") {
         return handle.title({ categories, params: match.params });
@@ -29,7 +60,7 @@ export default function Header() {
         return handle.title;
       }
     }
-  }, [handle, categories]);
+  }, [handle, categories, location.pathname, categoryName, match?.params]);
 
   const showBack = location.key !== "default" && !handle?.noBack;
 

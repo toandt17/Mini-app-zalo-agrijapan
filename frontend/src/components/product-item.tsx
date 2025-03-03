@@ -32,7 +32,7 @@ export default function ProductItem(props: ProductItemProps) {
         {({ isTransitioning }) => (
           <>
             <img
-              src={props.product.image}
+              src={`http://127.0.0.1:8000/storage/${props.product.image}`}
               className="w-full aspect-square object-cover rounded-lg"
               style={{
                 viewTransitionName:

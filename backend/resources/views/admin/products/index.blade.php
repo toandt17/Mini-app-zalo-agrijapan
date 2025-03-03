@@ -24,8 +24,6 @@
             </div>
             <!-- END PAGE HEADER -->
 
-
-
             <!-- ROW -->
             <div class="row row-sm">
                 <div class="col-lg-12">
@@ -49,19 +47,27 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @foreach($products as $index => $product)
                                         <tr>
-                                            <td>Tiger Nixon</td>
-                                            <td>System Architect</td>
-                                            <td>Edinburgh</td>
-                                            <td>System Architect</td>
-                                            <td>Edinburgh</td>
-                                            <td>61</td>
-                                            <td>2011/04/25</td>
+                                            <td>{{ $index + 1 }}</td>
+                                            <td>{{ $product->name }}</td>
+                                            <td>{{ $product->category->name }}</td>
+                                            <td>{{ $product->quantity }}</td>
+                                            <td> @if($product->image)
+                                                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" style="max-width: 100px; height: auto;">
+                                            @endif</td>
+                                            <td>{{ number_format($product->price, 0, ',', '.') }} VND</td>
+                                            <td>{{ $product->status }}</td>
                                             <td>
-                                                <button class="btn ripple btn-success"><i class="fe fe-edit"></i></button>
-                                                <button class="btn ripple btn-danger"><i class="fe fe-trash"></i></button>
+                                                <a href="{{ route('admin.products.edit', $product->id) }}" class="btn ripple btn-success"><i class="fe fe-edit"></i></a>
+                                                <form action="{{ route('admin.products.delete', $product->id) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn ripple btn-danger"><i class="fe fe-trash"></i></button>
+                                                </form>
                                             </td>
                                         </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
@@ -71,10 +77,8 @@
             </div>
             <!-- END ROW -->
 
-
         </div>
     </div>
 </div>
-
 
 @endsection

@@ -8,57 +8,60 @@
             <!-- PAGE HEADER -->
             <div class="page-header">
                 <div>
-                    <h2 class="main-content-title tx-24 mg-b-5">Loại sản phẩm</h2>
+                    <h2 class="main-content-title tx-24 mg-b-5">Danh sách loại sản phẩm</h2>
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="javascript:;">Loại sản phẩm</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Danh sách loại</li>
+                        <li class="breadcrumb-item active" aria-current="page">Danh sách loại sản phẩm</li>
                     </ol>
                 </div>
                 <div class="d-flex">
                     <div class="justify-content-center">
-                        <a href="{{route('admin.categories.add')}}">
-                            <button class="btn btn-primary" type="submit" >Thêm mới</button>
+                        <a href="{{ route('admin.categories.add') }}" class="btn btn-primary my-2 btn-icon-text">
+                            <i class="fe fe-plus"></i> Thêm mới
                         </a>
-                        
                     </div>
                 </div>
             </div>
             <!-- END PAGE HEADER -->
 
-
-
             <!-- ROW -->
             <div class="row row-sm">
-
-                <div class="col-lg-12">
-                    <div class="card custom-card overflow-hidden">
+                <div class="col-xl-12 col-lg-12 col-md-12">
+                    <div class="card custom-card">
                         <div class="card-body">
                             <div>
                                 <h6 class="main-content-label mb-1">Danh sách loại sản phẩm</h6>
                             </div>
-                            
-                            <div class="table-responsive mt-3">
-                                <table id="file-datatable" class="table table-bordered text-nowrap key-buttons border-bottom">
+                            <div class="table-responsive">
+                                <table id="file-datatable" class="table table-bordered text-nowrap">
                                     <thead>
                                         <tr>
-                                            <th class="border-bottom-0">STT</th>
-                                            <th class="border-bottom-0">Loại sản phẩm</th>
-                                            <th class="border-bottom-0">Hình ảnh</th>
-                                            <th class="border-bottom-0">Hành động</th>
+                                            <th>#</th>
+                                            <th>Tên loại sản phẩm</th>
+                                            <th>Hình ảnh</th>
+                                            <th>Hành động</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>61</td>
-                                            <td>2011/04/25</td>
-                                            <td></td>
-                                            <td>
-                                                 {{-- <a href="{{ route('admin.categories.edit') }}"> --}}
-                                                    <button class="btn btn-success"><i class="fe fe-edit"></i></button>
-                                                {{-- </a>  --}}
-                                                <button class="btn ripple btn-danger"><i class="fe fe-trash"></i></button>
-                                            </td>
-                                        </tr>
+                                        @foreach($categories as $category)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $category->name }}</td>
+                                                <td>
+                                                    @if($category->image)
+                                                        <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" style="max-width: 100px; height: auto;">
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-success btn-sm">Sửa</a>
+                                                    <form action="{{ route('admin.categories.delete', $category->id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete()">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
@@ -67,10 +70,14 @@
                 </div>
             </div>
             <!-- END ROW -->
-           
         </div>
     </div>
 </div>
 
+<script>
+    function confirmDelete() {
+        return confirm('Bạn có chắc chắn muốn xóa loại sản phẩm này không?');
+    }
+</script>
 
 @endsection

@@ -29,8 +29,6 @@
             </div>
             <!-- END PAGE HEADER -->
 
-
-
             <!-- ROW -->
             <div class="row row-sm">
                 <div class="col-xl-12 col-lg-12 col-md-12">
@@ -41,30 +39,28 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <form class="row g-3 needs-validation" novalidate>
+                            <form class="row g-3 needs-validation" action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data" novalidate>
+                                @csrf
                                 <div class="col-md-12 position-relative">
-                                    <label for="validationTooltip01" class="form-label tx-semibold">Tên loại sản phẩm</label>
-                                    <input type="text" class="form-control" id="validationTooltip01" placeholder="Nhập tên loại sản phẩm" required>
-                                    <div class="valid-tooltip">
-                                    Looks good!
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-12 position-relative">
-                                    <label for="validationTooltip03" class="form-label tx-semibold">Môt tả</label>
-                                    <input type="text" class="form-control" id="validationTooltip03" placeholder="Nhập mô tả sản phẩm" required>
-                                    <div class="invalid-tooltip">
-                                    Please provide a valid city.
-                                    </div>
+                                    <label for="name" class="form-label tx-semibold">Tên loại sản phẩm</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" placeholder="Nhập tên loại sản phẩm" required>
+                                    @error('name')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-md-12 position-relative">
-									<div>
-										<h6 class="main-content-label mb-1">Tải hình ảnh</h6>
-									</div>
-									<div>
-										<input id="demo" type="file" name="files" accept="image/jpg, image/jpeg, image/png, text/html, application/zip, text/css, text/js" multiple>
-									</div>
-								</div>
+                                    <label for="image" class="form-label tx-semibold">Tải hình ảnh</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/jpg, image/jpeg, image/png" onchange="previewImage(event)">
+                                    @error('image')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-12">
+                                    <div id="imagePreviewContainer" style="position: relative; display: none;">
+                                        <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;" />
+                                        <button type="button" onclick="removeImage()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>
+                                    </div>
+                                </div>
                                 <div class="col-12">
                                     <button class="btn btn-primary" type="submit">Thêm mới</button>
                                 </div>
@@ -78,5 +74,26 @@
     </div>
 </div>
 
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function(){
+            var output = document.getElementById('imagePreview');
+            var container = document.getElementById('imagePreviewContainer');
+            output.src = reader.result;
+            container.style.display = 'block';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function removeImage() {
+        var input = document.getElementById('image');
+        var output = document.getElementById('imagePreview');
+        var container = document.getElementById('imagePreviewContainer');
+        input.value = ''; // Clear the file input
+        output.src = '#'; // Reset the image source
+        container.style.display = 'none'; // Hide the preview container
+    }
+</script>
 
 @endsection
