@@ -1,4 +1,4 @@
-import { CartIcon, CategoryIcon, HomeIcon, PackageIcon } from "./vectors";
+import { CartIcon, CategoryIcon, HomeIcon, PackageIcon, UserIcon } from "./vectors";
 import HorizontalDivider from "./horizontal-divider";
 import { useAtomValue } from "jotai";
 import { cartState } from "@/state";
@@ -34,6 +34,11 @@ const NAV_ITEMS = [
         </Badge>
       );
     },
+  },
+  {
+    name: "Tài khoản",
+    path: "/account",
+    icon: UserIcon, // Thay đổi từ CartIcon sang UserIcon
   },
 ];
 

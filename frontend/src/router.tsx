@@ -13,6 +13,8 @@ import ShippingAddressPage from "./pages/cart/shipping-address";
 import StationsPage from "./pages/cart/stations";
 import OrderDetailPage from "./pages/orders/detail";
 import ProfileEditorPage from "./pages/profile/editor";
+import AccountPage from "./pages/account";
+import AccountProfilePage from "./pages/account/profile";
 
 const router = createBrowserRouter(
   [
@@ -115,6 +117,22 @@ const router = createBrowserRouter(
           handle: {
             search: true,
             title: "Tìm kiếm",
+            noFooter: true,
+          },
+        },
+        {
+          path: "/account",
+          element: <AccountPage />,
+          handle: {
+            title: "Tài khoản",
+            noBack: true,
+          },
+        },
+        {
+          path: "/account/profile",
+          element: <AccountProfilePage />,
+          handle: {
+            title: "Thông tin tài khoản",
             noFooter: true,
           },
         },
