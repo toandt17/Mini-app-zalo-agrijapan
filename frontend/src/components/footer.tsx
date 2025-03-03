@@ -18,7 +18,7 @@ const NAV_ITEMS = [
     icon: CategoryIcon,
   },
   {
-    name: "Đơn hàng",
+    name: "Liên hệ",
     path: "/orders",
     icon: PackageIcon,
   },

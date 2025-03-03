@@ -48,10 +48,10 @@ export default function ProductItem(props: ProductItemProps) {
                   {props.product.name}
                 </div>
               </div>
-              <div className="mt-0.5 text-sm font-bold text-primary truncate">
+              {/* <div className="mt-0.5 text-sm font-bold text-primary truncate">
                 {formatPrice(props.product.price.toString())}
-              </div>
-              {props.product.original_price && (
+              </div> */}
+              {/* {props.product.original_price && (
                 <div className="text-3xs space-x-0.5 truncate">
                   <span className="text-subtitle line-through">
                     {formatPrice(props.product.original_price.toString())}
@@ -66,7 +66,7 @@ export default function ProductItem(props: ProductItemProps) {
                     %
                   </span>
                 </div>
-              )}
+              )} */}
             </div>
           </>
         )}
@@ -84,7 +84,7 @@ export default function ProductItem(props: ProductItemProps) {
               });
             }}
           >
-            Thêm vào giỏ
+            Liên hệ
           </Button>
         ) : (
           <QuantityInput value={cartQuantity} onChange={addToCart} />
