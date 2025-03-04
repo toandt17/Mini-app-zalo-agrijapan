@@ -558,20 +558,20 @@ export function EmptyBoxIcon() {
 }
 
 // Thêm vào file vectors.tsx hiện có
-export function UserIcon({ active = false }) {
+export function UserIcon({ color = "#303030", strokeWidth = 1.5 }) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path 
         d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-        stroke={active ? "#4CAF50" : "#303030"}
-        strokeWidth="1.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path 
         d="M20.5899 22C20.5899 18.13 16.7399 15 11.9999 15C7.25991 15 3.40991 18.13 3.40991 22"
-        stroke={active ? "#4CAF50" : "#303030"}
-        strokeWidth="1.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -587,12 +587,12 @@ export function ShipperIcon() {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-    >
+    > 
       <path
         fill-rule="evenodd"
         clip-rule="evenodd"
         d="M0.886266 10.5868H5.76216C6.06914 10.5868 6.3203 10.3356 6.3203 10.0286V5.15273C6.3203 4.84575 6.06914 4.59454 5.76216 4.59454H0.886266C0.579281 4.59454 0.328125 4.84575 0.328125 5.15273V10.0286C0.328125 10.3356 0.579281 10.5868 0.886266 10.5868Z"
-        fill="#FFDC6E"
+        fill="#FFDC6E"    
       />
       <path
         fill-rule="evenodd"

@@ -5,43 +5,37 @@ import { cartState } from "@/state";
 import TransitionLink from "./transition-link";
 import { useRouteHandle } from "@/hooks";
 import Badge from "./badge";
+import { MessageCircle } from "lucide-react";
+import { messagesState } from "@/state";
 
 const NAV_ITEMS = [
   {
     name: "Trang chủ",
     path: "/",
-    icon: HomeIcon,
+    icon: (props) => <HomeIcon {...props} />,
   },
   {
     name: "Danh mục",
     path: "/categories",
-    icon: CategoryIcon,
+    icon: (props) => <CategoryIcon {...props} />,
   },
   {
     name: "Liên hệ",
     path: "/orders",
-    icon: PackageIcon,
+    icon: (props) => <PackageIcon {...props} />,
   },
   {
-    name: "Giỏ hàng",
-    path: "/cart",
-    icon: (props) => {
-      const cart = useAtomValue(cartState);
-
-      return (
-        <Badge value={cart.length}>
-          <CartIcon {...props} />
-        </Badge>
-      );
-    },
+    name: "Tin nhắn",
+    path: "https://zalo.me/4595954910489503839",
+    icon: (props) => <MessageCircle {...props} />, // Sửa để nhận props
   },
   {
     name: "Tài khoản",
     path: "/account",
-    icon: UserIcon, // Thay đổi từ CartIcon sang UserIcon
+    icon: (props) => <UserIcon {...props} />,
   },
 ];
-
+  
 export default function Footer() {
   const [handle] = useRouteHandle();
 
@@ -65,8 +59,14 @@ export default function Footer() {
                 {({ isActive }) => (
                   <>
                     <div className="w-6 h-6 flex justify-center items-center">
-                      <item.icon active={isActive} />
+                      <item.icon 
+                        size={24} 
+                        color={isActive ? "#22c55e" : "#6b7280"} // Màu xanh lá khi active, xám khi không
+                        strokeWidth={isActive ? 2 : 1.5} 
+                      />
                     </div>
+
+
                     <div
                       className={`text-2xs ${isActive ? "text-primary" : ""}`}
                     >
