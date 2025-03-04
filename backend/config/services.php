@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'zalo' => [
+        'app_id' => env('ZALO_APP_ID'),
+        'secret_key' => env('ZALO_SECRET_KEY'),
+    ],
+
 ];

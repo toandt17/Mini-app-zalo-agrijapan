@@ -27,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ];
 
             $clientRoutes = [
-
+                // Add client routes here
             ];
 
             foreach ($adminRoutes as $route){
@@ -43,6 +43,11 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->name('client.')
                      ->group(base_path("routes/client/{$route}"));
             }
+
+            // API routes for Zalo Mini App authentication
+            Route::middleware(['api', 'cors'])
+                 ->prefix('api')
+                 ->group(base_path('routes/api.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware){
@@ -57,4 +62,5 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions){
         //
     })->create();
+
 
