@@ -15,6 +15,11 @@ import OrderDetailPage from "./pages/orders/detail";
 import ProfileEditorPage from "./pages/profile/editor";
 import AccountPage from "./pages/account";
 import AccountProfilePage from "./pages/account/profile";
+import GamesPage from "./pages/games";
+import LuckyWheelPage from "./pages/games/lucky-wheel";
+import CheckInPage from "./pages/games/check-in";
+import QuizPage from "./pages/games/quiz";
+import GameHistoryPage from "./pages/account/games";
 
 const router = createBrowserRouter(
   [
@@ -133,6 +138,46 @@ const router = createBrowserRouter(
           element: <AccountProfilePage />,
           handle: {
             title: "Thông tin tài khoản",
+            noFooter: true,
+          },
+        },
+        {
+          path: "/account/games",
+          element: <GameHistoryPage />,
+          handle: {
+            title: "Lịch sử hoạt động",
+            noFooter: true,
+          },
+        },
+        {
+          path: "/games",
+          element: <GamesPage />,
+          handle: {
+            title: "Mini Games",
+            noFooter: false,
+          },
+        },
+        {
+          path: "/games/lucky-wheel",
+          element: <LuckyWheelPage />,
+          handle: {
+            title: "Vòng Quay May Mắn",
+            noFooter: true,
+          },
+        },
+        {
+          path: "/games/check-in",
+          element: <CheckInPage />,
+          handle: {
+            title: "Điểm Danh Hàng Ngày",
+            noFooter: true,
+          },
+        },
+        {
+          path: "/games/quiz",
+          element: <QuizPage />,
+          handle: {
+            title: "Trả Lời Câu Hỏi",
             noFooter: true,
           },
         },

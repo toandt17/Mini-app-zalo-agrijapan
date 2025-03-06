@@ -953,3 +953,86 @@ export function DefaultUserAvatar(props: HTMLProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+// ... existing code ...
+
+export function GameIcon(props: { size?: number, color?: string, strokeWidth?: number }) {
+  const { size = 24, color = "#6F7071", strokeWidth = 1.5 } = props;
+  const primaryColor = props.active ? "var(--primary)" : color;
+  
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Hình nền tay cầm */}
+      <path
+        d="M17.5 7.17C16.3 6.3 14.5 6 12 6C9.5 6 7.7 6.3 6.5 7.17C3.9 9.03 2.6 14.17 3.1 17.89C3.3 19.36 4.7 19.99 5.8 19.99C6.9 19.99 7.9 19.36 8.1 18.06C8.2 17.47 8.6 17 9 17H15C15.4 17 15.8 17.47 15.9 18.06C16.1 19.36 17.1 19.99 18.2 19.99C19.3 19.99 20.7 19.36 20.9 17.89C21.4 14.16 20.1 9.03 17.5 7.17Z"
+        fill={props.active ? "#E6F5EA" : "#F0F0F0"}
+        stroke={primaryColor}
+        strokeWidth={strokeWidth}
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      {/* Các nút */}
+      <path
+        d="M15 10H17"
+        stroke={primaryColor}
+        strokeWidth={strokeWidth}
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      <path
+        d="M16 9V11"
+        stroke={primaryColor}
+        strokeWidth={strokeWidth}
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      {/* Nút D-pad */}
+      <path
+        d="M7 9V11"
+        stroke={primaryColor}
+        strokeWidth={strokeWidth}
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      <path
+        d="M8 10H6"
+        stroke={primaryColor}
+        strokeWidth={strokeWidth}
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      {/* Các nút bấm tròn */}
+      <circle
+        cx="19"
+        cy="10.5"
+        r="1"
+        fill={props.active ? "var(--primary)" : primaryColor}
+      />
+      
+      <circle
+        cx="12"
+        cy="10"
+        r="1.5"
+        fill="none"
+        stroke={primaryColor}
+        strokeWidth={strokeWidth}
+      />
+    </svg>
+  );
+}

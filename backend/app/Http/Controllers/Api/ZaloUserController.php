@@ -56,225 +56,113 @@ class ZaloUserController extends Controller
      */
     public function processPhoneToken(Request $request)
     {
-        // Tăng cường logging để debug vấn đề
-        Log::info('Phone token request received', [
-            'request_data' => $request->all(),
-        ]);
-
         try {
-            // Validate request
-            $validator = Validator::make($request->all(), [
-                'zaloId' => 'required|string',
-                'token' => 'required|string',
-                'userData' => 'nullable|array',
+            // Log request
+            Log::info('Phone/profile request received', [
+                'request_data' => $request->all()
             ]);
 
-            if ($validator->fails()) {
-                Log::warning('Validation failed:', [
-                    'errors' => $validator->errors()->toArray(),
-                ]);
+            // Validate input
+            if (empty($request->token)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
+                    'message' => 'Missing token field'
+                ], 400);
             }
 
-            // Lấy thông tin cấu hình từ .env
-            $zaloAppId = config('services.zalo.app_id'); // Thay đổi cách lấy config
-            $zaloSecretKey = config('services.zalo.secret_key'); // Thay đổi cách lấy config
+            // Lấy secret key từ .env
+            $zaloSecretKey = env('ZALO_SECRET_KEY');
 
-            // Kiểm tra đã có đủ thông tin chưa
-            if (empty($zaloAppId) || empty($zaloSecretKey)) {
-                Log::error('Missing Zalo configuration', [
-                    'app_id_exists' => !empty($zaloAppId),
-                    'secret_key_exists' => !empty($zaloSecretKey)
-                ]);
-
-                // Fallback to env if config is not available
-                $zaloAppId = env('ZALO_APP_ID');
-                $zaloSecretKey = env('ZALO_SECRET_KEY');
-
-                if (empty($zaloAppId) || empty($zaloSecretKey)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Missing Zalo configuration on server'
-                    ], 500);
-                }
+            if (empty($zaloSecretKey)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Missing Zalo secret key'
+                ], 500);
             }
 
-            // Log cấu hình (chỉ log 5 ký tự đầu để bảo mật)
-            Log::info('Zalo configuration', [
-                'app_id' => $zaloAppId,
-                'secret_key_prefix' => substr($zaloSecretKey, 0, 5) . '...',
-                'token_prefix' => substr($request->token, 0, 5) . '...',
+            // Kiểm tra và log access token
+            Log::info('Access token received', [
+                'accessToken' => $request->accessToken,
+                'accessToken_length' => $request->accessToken ? strlen($request->accessToken) : 0
             ]);
 
-            // Gọi API Zalo
-            try {
-                // Điều chỉnh payload theo tài liệu mới nhất
-                $payload = [
-                    'app_id' => $zaloAppId,
-                    'code' => $request->token
-                ];
+            // Nếu có access token từ client
+            if (!empty($request->accessToken)) {
+                try {
+                    // Gọi API để lấy số điện thoại từ token
+                    $response = Http::withHeaders([
+                        'access_token' => $request->accessToken,
+                        'code' => $request->token,
+                        'secret_key' => $zaloSecretKey
+                    ])->get('https://graph.zalo.me/v2.0/me/info');
 
-                // Sử dụng header Authorization thay vì gửi secret_key trong body
-                $headers = [
-                    'Authorization' => 'Bearer ' . $zaloSecretKey,
-                    'Content-Type' => 'application/x-www-form-urlencoded'
-                ];
-
-                Log::info('Sending request to Zalo API', [
-                    'endpoint' => 'https://graph.zalo.me/v2.0/me/info',
-                    'payload' => $payload,
-                    'headers' => ['Authorization' => 'Bearer ***HIDDEN***']
-                ]);
-
-                // Thực hiện request đến Zalo API với header Authorization
-                $response = Http::withHeaders($headers)
-                                ->asForm()
-                                ->post('https://graph.zalo.me/v2.0/me/info', $payload);
-
-                // Log response để debug
-                Log::info('Zalo API response', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-
-                // Kiểm tra response status code
-                if (!$response->successful()) {
-                    Log::error('Zalo API returned non-200 status code', [
+                    Log::info('Zalo phone info response', [
                         'status' => $response->status(),
                         'body' => $response->body()
                     ]);
 
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Zalo API returned status: ' . $response->status(),
-                        'response_body' => $response->body()
-                    ], 500);
-                }
-
-                // Parse response JSON
-                $responseData = $response->json();
-                Log::info('Parsed response data', ['data' => $responseData]);
-
-                // Kiểm tra cấu trúc response theo tài liệu mới nhất
-                if (isset($responseData['data']) && isset($responseData['data']['phone'])) {
-                    // Lấy số điện thoại từ response
-                    $phoneNumber = $responseData['data']['phone'];
-
-                    // Định dạng số điện thoại (nếu cần)
-                    if (substr($phoneNumber, 0, 2) === '84') {
-                        $phoneNumber = '0' . substr($phoneNumber, 2);
-                    }
-
-                    Log::info('Successfully decoded phone number', [
-                        'phone' => $phoneNumber
-                    ]);
-                } else {
-                    // Thử lại với endpoint cũ
-                    Log::info('Retrying with legacy endpoint');
-
-                    $payload = [
-                        'app_id' => $zaloAppId,
-                        'code' => $request->token,
-                        'secret_key' => $zaloSecretKey
-                    ];
-
-                    $response = Http::post('https://graph.zalo.me/v2.0/api/open/getphone', $payload);
-
                     $responseData = $response->json();
-                    Log::info('Legacy API response', ['data' => $responseData]);
 
+                    // Kiểm tra kết quả
                     if (isset($responseData['data']) && isset($responseData['data']['number'])) {
                         $phoneNumber = $responseData['data']['number'];
 
-                        // Định dạng số điện thoại (nếu cần)
+                        // Định dạng số điện thoại nếu cần
                         if (substr($phoneNumber, 0, 2) === '84') {
                             $phoneNumber = '0' . substr($phoneNumber, 2);
                         }
 
-                        Log::info('Successfully decoded phone number from legacy API', [
+                        // Lưu vào database
+                        try {
+                            $user = User::where('zalo_id', $request->zaloId)->first();
+                            if ($user) {
+                                $user->phone = $phoneNumber;
+                                $user->save();
+                                Log::info('Updated phone number for user', [
+                                    'zalo_id' => $request->zaloId,
+                                    'phone' => $phoneNumber
+                                ]);
+                            }
+                        } catch (\Exception $dbErr) {
+                            Log::error('Error saving phone to DB: ' . $dbErr->getMessage());
+                        }
+
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Lấy số điện thoại thành công',
                             'phone' => $phoneNumber
                         ]);
                     } else {
-                        // Xử lý lỗi từ Zalo API
-                        $errorCode = $responseData['error'] ?? 'unknown';
-                        $errorMessage = $responseData['message'] ?? 'Unknown error';
-
-                        Log::error('Zalo API error or unexpected response structure', [
-                            'code' => $errorCode,
-                            'message' => $errorMessage,
-                            'response' => $responseData
-                        ]);
-
                         return response()->json([
                             'success' => false,
-                            'message' => "Lỗi từ Zalo API: $errorMessage (Mã lỗi: $errorCode)",
-                            'error_details' => $responseData
-                        ], 500);
+                            'message' => 'Không thể lấy số điện thoại từ token',
+                            'response' => $responseData
+                        ]);
                     }
+                } catch (\Exception $apiErr) {
+                    Log::error('Error calling Zalo Graph API: ' . $apiErr->getMessage());
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Lỗi khi gọi Zalo Graph API: ' . $apiErr->getMessage()
+                    ]);
                 }
-            } catch (\Exception $e) {
-                Log::error('Exception calling Zalo API', [
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-
+            } else {
+                // Thử phương pháp thay thế nếu không có access token
                 return response()->json([
                     'success' => false,
-                    'message' => 'Lỗi kết nối đến Zalo API: ' . $e->getMessage()
-                ], 500);
+                    'message' => 'Thiếu access token từ client',
+                    'debug_info' => 'Cần cung cấp access token để lấy số điện thoại từ token',
+                    'received_data' => $request->all() // Thêm dữ liệu nhận được để debug
+                ]);
             }
-
-            // Cập nhật thông tin người dùng vào database
-            try {
-                $userData = $request->userData ?? [];
-                $user = User::updateOrCreate(
-                    ['zalo_id' => $request->zaloId],
-                    [
-                        'phone' => $phoneNumber,
-                        'name' => $userData['name'] ?? null,
-                        'avatar' => $userData['avatar'] ?? null,
-                        'id_by_oa' => $userData['idByOA'] ?? null,
-                        'followed_oa' => $userData['followedOA'] ?? false,
-                        'last_login' => now(),
-                    ]
-                );
-
-                Log::info('User updated with phone number', [
-                    'user_id' => $user->id,
-                    'zalo_id' => $request->zaloId,
-                    'phone' => $phoneNumber
-                ]);
-
-                // Trả về response thành công
-                return response()->json([
-                    'success' => true,
-                    'phone' => $phoneNumber,
-                    'user' => $user
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Database error when updating user', [
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Lỗi cập nhật cơ sở dữ liệu: ' . $e->getMessage()
-                ], 500);
-            }
-        } catch (\Exception $e) {
-            Log::error('General error processing phone token: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
+        } catch (\Throwable $e) {
+            Log::error('General error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi xử lý token: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Lỗi xử lý yêu cầu: ' . $e->getMessage()
+            ]);
         }
     }
 }

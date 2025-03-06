@@ -46,7 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // API routes for Zalo Mini App authentication
             Route::middleware(['api', 'cors'])
-                 ->prefix('api')
+                 ->prefix('')
                  ->group(base_path('routes/api.php'));
         },
     )

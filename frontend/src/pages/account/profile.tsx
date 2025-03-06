@@ -1,16 +1,24 @@
 import { useState, useEffect } from "react";
 import { Button, Icon, Avatar } from "zmp-ui";
 import { useNavigate } from "react-router-dom";
-import { getUserInfo, getPhoneNumber } from "zmp-sdk";
+import { getUserInfo, getPhoneNumber, getAccessToken } from "zmp-sdk";
 import toast from "react-hot-toast";
 import axios from "axios";
+import React from 'react';
+import { useAtomValue } from 'jotai';
+import { gameHistoryState } from '@/state';
+import TransitionLink from '@/components/transition-link';
+
+// ... existing code ...
 
 const apiClient = axios.create({
-  baseURL: 'https://test.vieclamphuquoc.com.vn/api', // Địa chỉ Laravel local
+  baseURL: 'https://thiepcuoitoandao.id.vn', // Sửa thành tên miền đã xác thực
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// ... existing code ...
 
 export default function AccountProfilePage() {
   const navigate = useNavigate();
@@ -30,6 +38,8 @@ export default function AccountProfilePage() {
     errorInfo: ""
   });
   const [showDebug, setShowDebug] = useState(false);
+  
+  const gameHistory = useAtomValue(gameHistoryState);
   
   useEffect(() => {
     // Yêu cầu thông tin người dùng từ Zalo SDK
@@ -109,60 +119,65 @@ export default function AccountProfilePage() {
   const handleGetPhoneNumber = async () => {
     setLoading(true);
     try {
-      // Gọi API lấy số điện thoại - API này sẽ hiển thị màn hình xin cấp quyền mặc định của Zalo
-      await getPhoneNumber({
-        success: async (data) => {
-          // Log thông tin token để debug
-          console.log("Phone token received:", data);
-          
-          // Lưu thông tin token vào state debug
-          const tokenInfo = JSON.stringify(data, null, 2);
-          setDebug(prev => ({...prev, tokenInfo: tokenInfo}));
-          
-          // Gửi token đến server để lấy số điện thoại thực
-          try {
-            // Đường dẫn API đúng theo controller Laravel
-            const response = await apiClient.post('/zalo/process-phone-token', {
-              zaloId: profile.id,
-              token: data.token,
-              userData: {
-                name: profile.name,
-                avatar: profile.avatar,
-                idByOA: profile.idByOA,
-                followedOA: profile.followedOA
-              }
-            });
-            
-            if (response.data.success) {
-              // Cập nhật số điện thoại từ response của server
-              setProfile({...profile, phone: response.data.phone});
-              toast.success("Đã lấy số điện thoại thành công");
-            } else {
-              toast.error("Không thể xử lý token số điện thoại");
-              console.error("Lỗi xử lý token:", response.data.message);
-            }
-          } catch (serverError) {
-            console.error("Lỗi gửi token đến server:", serverError);
-            toast.error("Lỗi kết nối đến server");
-            setDebug(prev => ({...prev, errorInfo: JSON.stringify(serverError, null, 2)}));
+      console.log("Attempting to get phone token...");
+      const result = await getPhoneNumber({});
+      console.log("Phone token received:", result);
+      
+      console.log("Attempting to get access token...");
+      const accessTokenResult = await getAccessToken();
+      console.log("Access token result type:", typeof accessTokenResult);
+      console.log("Access token result:", accessTokenResult);
+      
+      // Nếu accessTokenResult là chuỗi
+      const accessToken = typeof accessTokenResult === 'string' 
+        ? accessTokenResult 
+        : accessTokenResult.accessToken;
+      
+      console.log("Final access token:", accessToken);
+      
+      // Log để debug
+      setDebug(prev => ({...prev, tokenInfo: JSON.stringify(result, null, 2)}));
+      
+      // Gửi cả token và access token đến server
+      try {
+        console.log("Sending request to server with token and access token...");
+        console.log("Access token:", accessToken);
+        
+        const response = await apiClient.post('/zalo/process-phone-token', {
+          zaloId: profile.id,
+          token: result.token,
+          accessToken: accessToken,
+          userData: {
+            name: profile.name,
+            avatar: profile.avatar,
+            idByOA: profile.idByOA,
+            followedOA: profile.followedOA
           }
-        },
-        fail: (error) => {
-          console.error("Không thể lấy số điện thoại:", error);
-          
-          // Lưu thông tin lỗi vào state debug
-          setDebug(prev => ({...prev, errorInfo: JSON.stringify(error, null, 2)}));
-          
-          if (error.code === -201 || error.code === -202) {
-            toast.error("Người dùng từ chối cấp quyền");
+        });
+        
+        console.log("Phone process response:", response.data);
+        
+        if (response.data.success) {
+          if (response.data.phone) {
+            setProfile(prev => ({...prev, phone: response.data.phone}));
+            toast.success("Đã lấy số điện thoại thành công");
           } else {
-            toast.error("Không thể lấy số điện thoại. Vui lòng thử lại sau");
+            toast.success("Token đã ghi nhận (process route)");
           }
+        } else {
+          toast.error(response.data.message || "Có lỗi khi xử lý token");
         }
-      });
+      } catch (procError) {
+        console.error("Error with process route:", procError);
+        setDebug(prev => ({...prev, errorInfo: JSON.stringify(procError, null, 2)}));
+        toast.error("Lỗi khi gọi route xử lý token");
+      }
     } catch (error) {
-      console.error("Lỗi khi gọi API:", error);
+      console.error("Error getting phone number:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error details:", JSON.stringify(error));
       setDebug(prev => ({...prev, errorInfo: JSON.stringify(error, null, 2)}));
+      toast.error("Không thể lấy số điện thoại");
     } finally {
       setLoading(false);
     }
@@ -178,6 +193,19 @@ export default function AccountProfilePage() {
     toast.success("Cập nhật thông tin thành công");
     navigate(-1);
   };
+
+  // Calculate total points earned
+  const totalPoints = gameHistory.reduce((total, activity) => {
+    if (activity.reward?.type === 'point') {
+      return total + activity.reward.value;
+    }
+    return total;
+  }, 0);
+  
+  // Count total vouchers
+  const totalVouchers = gameHistory.filter(
+    activity => activity.reward?.type === 'voucher'
+  ).length;
 
   return (
     <div className="flex flex-col h-full bg-gray-100">

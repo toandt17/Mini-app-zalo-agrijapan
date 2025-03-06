@@ -38,6 +38,8 @@ return [
     'zalo' => [
         'app_id' => env('ZALO_APP_ID'),
         'secret_key' => env('ZALO_SECRET_KEY'),
+        'access_token' => env('ZALO_ACCESS_TOKEN'),
+        'oa_id' => env('ZALO_OA_ID'),
     ],
 
 ];

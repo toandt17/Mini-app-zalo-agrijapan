@@ -1,4 +1,4 @@
-import { CartIcon, CategoryIcon, HomeIcon, PackageIcon, UserIcon } from "./vectors";
+import { CartIcon, CategoryIcon, GameIcon, HomeIcon, PackageIcon, UserIcon } from "./vectors";
 import HorizontalDivider from "./horizontal-divider";
 import { useAtomValue } from "jotai";
 import { cartState } from "@/state";
@@ -7,6 +7,7 @@ import { useRouteHandle } from "@/hooks";
 import Badge from "./badge";
 import { MessageCircle } from "lucide-react";
 import { messagesState } from "@/state";
+import { Icon } from "zmp-ui";
 
 const NAV_ITEMS = [
   {
@@ -20,6 +21,11 @@ const NAV_ITEMS = [
     icon: (props) => <CategoryIcon {...props} />,
   },
   {
+    name: "Trò chơi",
+    path: "/games",
+    icon: (props) =>  <GameIcon {...props} />, 
+  },
+  {
     name: "Liên hệ",
     path: "/orders",
     icon: (props) => <PackageIcon {...props} />,
@@ -27,7 +33,7 @@ const NAV_ITEMS = [
   {
     name: "Tin nhắn",
     path: "https://zalo.me/4595954910489503839",
-    icon: (props) => <MessageCircle {...props} />, // Sửa để nhận props
+    icon: (props) => <MessageCircle {...props} />,
   },
   {
     name: "Tài khoản",

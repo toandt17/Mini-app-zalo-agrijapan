@@ -36,7 +36,9 @@
     "react-router-dom": "^6.30.0",
     "resize-observer-polyfill": "^1.5.1",
     "zmp-sdk": "^2.41.0",
-    "zmp-ui": "^1.11.5"
+    "zmp-ui": "^1.11.5",
+    "canvas-confetti": "^1.6.0",
+    "date-fns": "^2.30.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

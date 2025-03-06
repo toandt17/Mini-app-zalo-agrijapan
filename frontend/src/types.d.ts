@@ -71,3 +71,41 @@ export interface Order {
   total: number;
   note: string;
 }
+
+// Game types
+export interface Reward {
+  id: number;
+  name: string;
+  type: 'voucher' | 'point' | 'product' | 'none';
+  value: number;
+  image?: string;
+  color: string;
+}
+
+export interface LuckyWheelData {
+  rewards: Reward[];
+  remainingSpins: number;
+  lastSpin?: Date;
+}
+
+export interface GameActivity {
+  id: number;
+  type: 'spin' | 'checkin' | 'quiz';
+  result: string;
+  reward?: Reward;
+  createdAt: Date;
+}
+
+export interface CheckInStatus {
+  lastCheckIn: Date | null;
+  consecutive: number;
+  total: number;
+}
+
+export interface QuizQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  reward: Reward;
+}
