@@ -69,6 +69,15 @@ export default function AccountPage() {
               </div>
               <Icon icon="zi-chevron-right" />
             </TransitionLink>
+            <TransitionLink to="/ord" className="flex items-center justify-between py-3 px-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <Icon icon="zi-phone" />
+                </div>
+                <span className="text-sm">Liên hệ</span>
+              </div>
+              <Icon icon="zi-chevron-right" />
+            </TransitionLink>
           </div>
         </Section>
 

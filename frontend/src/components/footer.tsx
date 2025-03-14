@@ -15,7 +15,7 @@ const NAV_ITEMS = [
     icon: (props) => <HomeIcon {...props} />,
   },
   {
-    name: "Danh mục",
+    name: "Đại lý",
     path: "/categories",
     icon: (props) => <CategoryIcon {...props} />,
   },
@@ -29,6 +29,11 @@ const NAV_ITEMS = [
     path: "/agents",
     icon: (props) => <MapPin {...props} />,
   },
+  // {
+  //   name: "Liên hệ",
+  //   path: "/orders",
+  //   icon: (props) => <PackageIcon {...props} />,
+  // },
   {
     name: "Tin nhắn",
     path: "https://zalo.me/4595954910489503839",

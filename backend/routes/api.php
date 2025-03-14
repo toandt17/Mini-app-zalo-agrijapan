@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ZaloUserController;
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\GameController;
 
 // Các route cho Zalo Mini App
 Route::post('/users/save', [ZaloUserController::class, 'saveUser']);
@@ -137,3 +138,11 @@ Route::get('/debug/routes', function() {
         'count' => $routes->count()
     ];
 });
+
+
+// Các route cho các trò chơi
+Route::get('/games/lucky_wheel', [GameController::class, 'index']);
+
+
+
+

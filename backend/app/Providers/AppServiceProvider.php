@@ -17,6 +17,8 @@ use App\Repositories\Location\LocationInterface;
 use App\Repositories\Location\LocationRepository;
 use App\Repositories\Agent\AgentInterface;
 use App\Repositories\Agent\AgentRepository;
+use App\Repositories\Game\GameRepository;
+use App\Repositories\Game\GameInterface;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProductInterface::class, ProductRepository::class);
         $this->app->bind(LocationInterface::class, LocationRepository::class);
         $this->app->bind(AgentInterface::class, AgentRepository::class);
+        $this->app->bind(GameInterface::class, GameRepository::class);
     }
 
     /**
