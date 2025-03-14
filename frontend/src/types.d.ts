@@ -109,3 +109,51 @@ export interface QuizQuestion {
   correctAnswer: number;
   reward: Reward;
 }
+
+// Agent types
+export interface Agent {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  email?: string;
+  image?: string;
+  location: Location;
+  province: string;
+  district: string;
+  ward: string;
+  description?: string;
+  openHours?: string;
+  distance?: number;
+}
+
+export interface LocationData {
+  currentLocation: {
+    province: string;
+    district: string;
+    ward: string;
+    lat: number;
+    lng: number;
+  };
+  provinces: Province[];
+}
+
+export interface Province {
+  id: string;
+  name: string;
+  type: string;
+  districts?: District[];
+}
+
+export interface District {
+  id: string;
+  name: string;
+  type: string;
+  wards?: Ward[];
+}
+
+export interface Ward {
+  id: string;
+  name: string;
+  type: string;
+}

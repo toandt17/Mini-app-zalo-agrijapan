@@ -20,6 +20,8 @@ import LuckyWheelPage from "./pages/games/lucky-wheel";
 import CheckInPage from "./pages/games/check-in";
 import QuizPage from "./pages/games/quiz";
 import GameHistoryPage from "./pages/account/games";
+import AgentsPage from "./pages/agents";
+import AgentDetailPage from "./pages/agents/detail";
 
 const router = createBrowserRouter(
   [
@@ -179,6 +181,20 @@ const router = createBrowserRouter(
           handle: {
             title: "Trả Lời Câu Hỏi",
             noFooter: true,
+          },
+        },
+        {
+          path: "/agents",
+          element: <AgentsPage />,
+          handle: {
+            title: "Đại lý gần bạn",
+          },
+        },
+        {
+          path: "/agents/:id",
+          element: <AgentDetailPage />,
+          handle: {
+            title: "Chi tiết đại lý",
           },
         },
       ],

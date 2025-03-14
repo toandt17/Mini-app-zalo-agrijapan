@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'preview.php',
                 'contact.php',
                 'chart.php',
+                'agent.php',
             ];
 
             $clientRoutes = [

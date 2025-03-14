@@ -5,8 +5,7 @@ import { cartState } from "@/state";
 import TransitionLink from "./transition-link";
 import { useRouteHandle } from "@/hooks";
 import Badge from "./badge";
-import { MessageCircle } from "lucide-react";
-import { messagesState } from "@/state";
+import { MessageCircle, MapPin } from "lucide-react";
 import { Icon } from "zmp-ui";
 
 const NAV_ITEMS = [
@@ -26,9 +25,9 @@ const NAV_ITEMS = [
     icon: (props) =>  <GameIcon {...props} />, 
   },
   {
-    name: "Liên hệ",
-    path: "/orders",
-    icon: (props) => <PackageIcon {...props} />,
+    name: "Đại lý",
+    path: "/agents",
+    icon: (props) => <MapPin {...props} />,
   },
   {
     name: "Tin nhắn",

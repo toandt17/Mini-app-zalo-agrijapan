@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button, Icon, Avatar } from "zmp-ui";
 import { useNavigate } from "react-router-dom";
-import { getUserInfo, getPhoneNumber, getAccessToken } from "zmp-sdk";
+import { getUserInfo, getPhoneNumber, getAccessToken, getLocation } from "zmp-sdk";
 import toast from "react-hot-toast";
 import axios from "axios";
 import React from 'react';
@@ -9,10 +9,8 @@ import { useAtomValue } from 'jotai';
 import { gameHistoryState } from '@/state';
 import TransitionLink from '@/components/transition-link';
 
-// ... existing code ...
-
 const apiClient = axios.create({
-  baseURL: 'https://thiepcuoitoandao.id.vn', // Sửa thành tên miền đã xác thực
+  baseURL: 'https://thiepcuoitoandao.id.vn',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -35,7 +33,11 @@ export default function AccountProfilePage() {
   const [debug, setDebug] = useState({
     tokenInfo: "",
     userInfo: "",
-    errorInfo: ""
+    errorInfo: "",
+    locationStatus: "",
+    locationToken: "",
+    accessToken: "",
+    locationResponse: ""
   });
   const [showDebug, setShowDebug] = useState(false);
   
@@ -139,19 +141,26 @@ export default function AccountProfilePage() {
       setDebug(prev => ({...prev, tokenInfo: JSON.stringify(result, null, 2)}));
       
       // Gửi cả token và access token đến server
+      console.log("Sending request to server with token and access token...");
+      console.log("Access token:", accessToken);
+      
       try {
-        console.log("Sending request to server with token and access token...");
-        console.log("Access token:", accessToken);
-        
-        const response = await apiClient.post('/zalo/process-phone-token', {
-          zaloId: profile.id,
-          token: result.token,
-          accessToken: accessToken,
-          userData: {
-            name: profile.name,
-            avatar: profile.avatar,
-            idByOA: profile.idByOA,
-            followedOA: profile.followedOA
+        const response = await axios({
+          method: 'post',
+          url: 'https://thiepcuoitoandao.id.vn/zalo/process-phone-token',
+          data: {
+            zaloId: profile.id,
+            token: result.token,
+            accessToken: accessToken,
+            userData: {
+              name: profile.name,
+              avatar: profile.avatar,
+              idByOA: profile.idByOA,
+              followedOA: profile.followedOA
+            }
+          },
+          headers: {
+            'Content-Type': 'application/json'
           }
         });
         
@@ -178,6 +187,94 @@ export default function AccountProfilePage() {
       console.error("Error details:", JSON.stringify(error));
       setDebug(prev => ({...prev, errorInfo: JSON.stringify(error, null, 2)}));
       toast.error("Không thể lấy số điện thoại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGetLocation = async () => {
+    try {
+      setLoading(true);
+      setDebug({ ...debug, locationStatus: 'Đang lấy vị trí...' });
+
+      // Lấy token vị trí từ Zalo SDK
+      const locationResult = await getLocation({});
+      setDebug({ ...debug, locationToken: locationResult.token || 'Không có token' });
+
+      if (locationResult && locationResult.token) {
+        try {
+          // Lấy access token
+          const accessTokenResult = await getAccessToken({});
+          
+          // Xử lý accessToken dựa trên kiểu trả về
+          let accessToken = '';
+          if (typeof accessTokenResult === 'string') {
+            accessToken = accessTokenResult;
+          } else if (accessTokenResult && typeof accessTokenResult === 'object') {
+            // Đảm bảo an toàn khi truy cập thuộc tính
+            accessToken = (accessTokenResult as any).accessToken || '';
+          }
+          
+          setDebug({ 
+            ...debug, 
+            locationToken: locationResult.token, 
+            accessToken: accessToken 
+          });
+
+          // Gửi token vị trí đến backend để xử lý
+          const response = await axios({
+            method: 'post',
+            url: 'https://thiepcuoitoandao.id.vn/zalo/process-location-token',
+            data: {
+              token: locationResult.token,
+              accessToken: accessToken,
+              zaloId: profile.id
+            },
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.data.success && response.data.location) {
+            const { latitude, longitude, provider, timestamp } = response.data.location;
+            setDebug({ 
+              ...debug, 
+              locationToken: locationResult.token,
+              accessToken: accessToken,
+              locationStatus: `Đã lấy vị trí thành công: ${latitude}, ${longitude}, ${provider}, ${timestamp}`
+            });
+            
+            toast.success('Đã lấy vị trí thành công!');
+          } else {
+            setDebug({ 
+              ...debug, 
+              locationStatus: 'Lỗi: ' + (response.data.message || 'Không thể lấy vị trí'),
+              locationResponse: JSON.stringify(response.data)
+            });
+            
+            toast.error('Không thể lấy vị trí của bạn. Vui lòng thử lại.');
+          }
+        } catch (error) {
+          console.error('Error processing location:', error);
+          setDebug({ 
+            ...debug, 
+            locationStatus: 'Lỗi xử lý vị trí: ' + (error instanceof Error ? error.message : String(error)) 
+          });
+          
+          toast.error('Đã xảy ra lỗi khi xử lý vị trí');
+        }
+      } else {
+        setDebug({ ...debug, locationStatus: 'Không nhận được token vị trí' });
+        toast.error('Không thể lấy token vị trí');
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+      setDebug({ 
+        ...debug, 
+        locationStatus: 'Lỗi: ' + (error instanceof Error ? error.message : String(error)) 
+      });
+      
+      toast.error('Không thể lấy quyền truy cập vị trí');
     } finally {
       setLoading(false);
     }
@@ -226,15 +323,27 @@ export default function AccountProfilePage() {
           {profile.phone ? (
             <p className="text-gray-500">{profile.phone}</p>
           ) : (
-            <Button 
-              onClick={handleGetPhoneNumber}
-              loading={loading}
-              className="mt-2"
-              size="small"
-              prefix={<Icon icon="zi-call" />}
-            >
-              Cấp quyền số điện thoại
-            </Button>
+            <>
+              <Button
+                onClick={handleGetPhoneNumber}
+                loading={loading}
+                className="mt-2"
+                size="small"
+                prefix={<Icon icon="zi-call" />}
+              >
+                Cấp quyền số điện thoại
+              </Button>
+
+              <Button
+                onClick={handleGetLocation}
+                loading={loading}
+                className="mt-2 ml-2"
+                size="small"
+                prefix={<Icon icon="zi-location" />}
+              >
+                Cấp quyền vị trí
+              </Button>
+            </>
           )}
           
           <Button
@@ -249,29 +358,25 @@ export default function AccountProfilePage() {
         
         {/* Debug section */}
         {showDebug && (
-          <div className="bg-gray-800 text-white rounded-lg p-4 text-xs overflow-auto max-h-96">
-            <h3 className="font-bold mb-2">Debug Information:</h3>
-            
-            {debug.userInfo && (
-              <div className="mb-4">
-                <h4 className="font-bold mb-1 text-green-400">User Info:</h4>
-                <pre className="whitespace-pre-wrap">{debug.userInfo}</pre>
+          <div className="bg-gray-100 p-4 rounded-md overflow-hidden text-sm">
+            <h4 className="font-semibold mb-2">Debug Info:</h4>
+            <div>
+              <p><strong>Token Info:</strong> {debug.tokenInfo}</p>
+              <p><strong>User Info:</strong> {debug.userInfo}</p>
+              <p><strong>Error Info:</strong> {debug.errorInfo}</p>
+              
+              <div className="mt-4 border-t pt-2">
+                <h5 className="font-semibold">Location Info:</h5>
+                <p><strong>Status:</strong> {debug.locationStatus}</p>
+                <p><strong>Token:</strong> {debug.locationToken}</p>
+                {debug.locationResponse && (
+                  <div>
+                    <p><strong>Response:</strong></p>
+                    <pre className="bg-gray-200 p-2 rounded text-xs overflow-auto max-h-40">{debug.locationResponse}</pre>
+                  </div>
+                )}
               </div>
-            )}
-            
-            {debug.tokenInfo && (
-              <div className="mb-4">
-                <h4 className="font-bold mb-1 text-blue-400">Phone Token Info:</h4>
-                <pre className="whitespace-pre-wrap">{debug.tokenInfo}</pre>
-              </div>
-            )}
-            
-            {debug.errorInfo && (
-              <div className="mb-4">
-                <h4 className="font-bold mb-1 text-red-400">Error Info:</h4>
-                <pre className="whitespace-pre-wrap">{debug.errorInfo}</pre>
-              </div>
-            )}
+            </div>
           </div>
         )}
         

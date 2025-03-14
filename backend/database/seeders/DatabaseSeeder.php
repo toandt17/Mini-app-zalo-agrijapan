@@ -14,8 +14,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            CategorySeeder::class,
-            ProductSeeder::class,
+            // Chạy các seeder địa chỉ trước
+            // ProvinceTableSeeder::class,
+            // DistrictTableSeeder::class,
+            // WardTableSeeder::class,
+            // AddressTableSeeder::class,
+
+            // Sau đó chạy các seeder khác
+            // CategorySeeder::class,
+            // ProductSeeder::class,
+            AgentSeeder::class,
         ]);
     }
 }
