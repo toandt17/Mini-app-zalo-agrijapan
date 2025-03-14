@@ -47,7 +47,7 @@ const router = createBrowserRouter(
           path: "/orders/:status?",
           element: <OrdersPage />,
           handle: {
-            title: "Đơn hàng",
+            title: "Liên hệ",
           },
         },
         {

@@ -13,6 +13,8 @@ use App\Repositories\Payment\PaymentRepository;
 use App\Repositories\Product\ProductInterface;
 use App\Repositories\Product\ProductRepository;
 use App\Repositories\User\UserRepository;
+use App\Repositories\Game\GameRepository;
+use App\Repositories\Game\GameInterface;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(OrderInterface::class, OrderRepository::class);
         $this->app->bind(PaymentInterface::class, PaymentRepository::class);
         $this->app->bind(ProductInterface::class, ProductRepository::class);
+        $this->app->bind(GameInterface::class, GameRepository::class);
     }
 
     /**

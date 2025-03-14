@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 import { calculateDistance } from "./utils/location";
 import { formatDistant } from "./utils/format";
 import CONFIG from "./config";
-
+import axios from 'axios';
 export const userInfoKeyState = atom(0);
 
 export const userInfoState = atom<Promise<UserInfo>>(async (get) => {
@@ -229,19 +229,18 @@ export const deliveryModeState = atomWithStorage<Delivery["type"]>(
   "shipping"
 );
 
-// Game states
-export const luckyWheelState = atom<LuckyWheelData>({
-  rewards: [
-    { id: 1, name: "Voucher 10K", type: "voucher", value: 10000, color: "#FF8A65" },
-    { id: 2, name: "10 điểm", type: "point", value: 10, color: "#4CAF50" },
-    { id: 3, name: "Chúc may mắn", type: "none", value: 0, color: "#90CAF9" },
-    { id: 4, name: "Voucher 20K", type: "voucher", value: 20000, color: "#FFC107" },
-    { id: 5, name: "30 điểm", type: "point", value: 30, color: "#7E57C2" },
-    { id: 6, name: "Chúc may mắn", type: "none", value: 0, color: "#90CAF9" },
-    { id: 7, name: "Voucher 50K", type: "voucher", value: 50000, color: "#EC407A" },
-    { id: 8, name: "Chúc may mắn", type: "none", value: 0, color: "#90CAF9" },
-  ],
-  remainingSpins: 3
+export const luckyWheelState = atom(async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/games/lucky_wheel');
+    console.log("Lucky Wheel API Data:", response.data);
+    return {
+      rewards: response.data.lucky_wheel || [],
+      remainingSpins: 1, 
+    };
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách giải thưởng:", error);
+    return { rewards: [], remainingSpins: 3 };
+  }
 });
 
 export const gameHistoryState = atom<GameActivity[]>([]);

@@ -581,6 +581,7 @@
         <script src="{{ asset('assets/build/assets/plugins/fancyuploder/jquery.iframe-transport.js') }}"></script>
         <script src="{{ asset('assets/build/assets/plugins/fancyuploder/jquery.fancy-fileupload.js') }}"></script>
         <script src="{{ asset('assets/build/assets/plugins/fancyuploder/fancy-uploader.js') }}"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 		@yield('js')
 	</body>
