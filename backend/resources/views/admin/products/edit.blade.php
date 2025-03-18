@@ -61,20 +61,6 @@
                                     Please select a valid state.
                                     </div>
                                 </div>
-                                <div class="col-md-6 position-relative">
-                                    <label for="validationTooltip02" class="form-label tx-semibold">Giá sản phẩm</label>
-                                    <input type="text" class="form-control" id="validationTooltip02" name="price" placeholder="Nhập giá sản phẩm" value="{{ old('price', $product->price) }}" required>
-                                    <div class="valid-tooltip">
-                                    Looks good!
-                                    </div>
-                                </div>
-                                <div class="col-md-6 position-relative">
-                                    <label for="validationTooltip03" class="form-label tx-semibold">Số lượng sản phẩm</label>
-                                    <input type="text" class="form-control" id="validationTooltip03" name="quantity" placeholder="Nhập số lượng sản phẩm" value="{{ old('quantity', $product->quantity) }}" required>
-                                    <div class="invalid-tooltip">
-                                    Please provide a valid city.
-                                    </div>
-                                </div>
                                 <div class="col-md-12 position-relative">
                                     <label for="validationTooltip03" class="form-label tx-semibold">Mô tả</label>
                                     <input type="text" class="form-control" id="validationTooltip03" name="detail" placeholder="Nhập mô tả sản phẩm" value="{{ old('detail', $product->detail) }}" required>

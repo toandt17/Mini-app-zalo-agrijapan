@@ -56,10 +56,19 @@ class AgentController extends Controller
 
             $agents = $query->paginate(10);
 
+            // Thêm URL đầy đủ cho QR code (nếu có)
+            $agentItems = collect($agents->items());
+            $agentItems = $agentItems->map(function ($agent) {
+                if ($agent->qr_code) {
+                    $agent->qr_code = url($agent->qr_code);
+                }
+                return $agent;
+            });
+
             // Log để debug
-            Log::info('Agents count: ' . $agents->count());
-            if ($agents->count() > 0) {
-                $firstAgent = $agents->first();
+            Log::info('Agents count: ' . $agents->total());
+            if ($agents->total() > 0 && isset($agents->items()[0])) {
+                $firstAgent = $agents->items()[0];
                 Log::info('First agent: ' . json_encode([
                     'id' => $firstAgent->id,
                     'name' => $firstAgent->name,
@@ -73,7 +82,7 @@ class AgentController extends Controller
             }
 
             return response()->json([
-                'data' => $agents->items(),
+                'data' => $agentItems->all(),
                 'meta' => [
                     'current_page' => $agents->currentPage(),
                     'last_page' => $agents->lastPage(),
@@ -110,17 +119,66 @@ class AgentController extends Controller
 
             $agent = $query->findOrFail($id);
 
+            // Thêm URL đầy đủ cho QR code (nếu có)
+            if ($agent->qr_code) {
+                $agent->qr_code = url($agent->qr_code);
+            }
+
+            // Xử lý thông tin thời gian tạo mã QR từ tham số 'created'
+            $qrCreatedTimestamp = null;
+            $qrCreatedFormatted = null;
+            $qrInfo = null;
+
+            if ($request->has('created')) {
+                // Sử dụng QrCodeService để lấy thông tin từ token
+                $qrCodeService = app(\App\Services\QrCodeService::class);
+                $result = $qrCodeService->findByToken($request->created);
+
+                if ($result['success']) {
+                    $qrCreatedTimestamp = $result['created_at_timestamp'] ?? null;
+                    $qrCreatedFormatted = $result['created_at'] ?? null;
+                    $qrInfo = $result;
+
+                    // Log thông tin để debug
+                    Log::info('QR Info from service:', $result);
+                }
+            } else if ($agent->qr_code_generated_at) {
+                // Nếu không có tham số created nhưng có thông tin về thời gian tạo mã QR trong cơ sở dữ liệu
+                $qrCreatedTimestamp = $agent->qr_code_generated_at;
+                $qrCreatedFormatted = $agent->qr_code_generated_at->format('d/m/Y H:i:s');
+            }
+
+            // Thêm thông tin về thời gian tạo mã QR vào dữ liệu trả về
+            $agent->qr_created_at_timestamp = $qrCreatedTimestamp ? $qrCreatedTimestamp : null;
+            $agent->qr_created_at_formatted = $qrCreatedFormatted;
+            $agent->qr_from_request = $request->has('created');
+
+            // Thêm thông tin chi tiết về mã QR
+            $agent->qr_info = [
+                'created_time' => $qrCreatedFormatted,
+                'is_valid' => true,
+                'scan_time' => now()->format('d/m/Y H:i:s'),
+                'qr_source' => $request->has('created') ?
+                    ($qrInfo ? $qrInfo['source'] : 'Từ mã QR đã quét') :
+                    'Từ hệ thống',
+                'details' => $qrInfo ?: null,
+            ];
+
             // Log để debug
             Log::info('Agent detail: ' . json_encode([
                 'id' => $agent->id,
                 'name' => $agent->name,
-                'province_id' => $agent->province_id,
-                'province' => $agent->province ? $agent->province->name : null,
-                'district_id' => $agent->district_id,
-                'district' => $agent->district ? $agent->district->name : null,
-                'ward_id' => $agent->ward_id,
-                'ward' => $agent->ward ? $agent->ward->name : null,
+                'qr_created_at' => $qrCreatedFormatted,
+                'has_created_param' => $request->has('created'),
+                'created_param' => $request->get('created')
             ]));
+
+            // Lấy thêm lịch sử mã QR nếu cần
+            if ($request->has('include_qr_history') && $request->include_qr_history) {
+                $agent->qr_codes = \App\Models\AgentQrCode::where('agent_id', $agent->id)
+                    ->orderBy('generated_at', 'desc')
+                    ->get();
+            }
 
             return response()->json([
                 'data' => $agent

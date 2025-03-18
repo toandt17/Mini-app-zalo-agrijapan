@@ -36,31 +36,5 @@ class CategorySeeder extends Seeder
             'name' => 'Thuốc trừ sâu rầy',
             'image' => 'thuoc_tru_sau_ray.jpg',
         ]);
-
-        Category::create([
-            'name' => 'Thuốc trừ bệnh',
-            'image' => 'thuoc_tru_benh.jpg',
-        ]);
-
-        Category::create([
-            'name' => 'Thuốc trừ sâu rầy',
-            'image' => 'thuoc_tru_sau_ray.jpg',
-        ]);
-
-        Category::create([
-            'name' => 'Thuốc trừ bệnh',
-            'image' => 'thuoc_tru_benh.jpg',
-        ]);
-
-        Category::create([
-            'name' => 'Thuốc trừ sâu rầy',
-            'image' => 'thuoc_tru_sau_ray.jpg',
-        ]);
-
-
-        Category::create([
-            'name' => 'Thuốc trừ sâu rầy',
-            'image' => 'thuoc_tru_sau_ray.jpg',
-        ]);
     }
 }

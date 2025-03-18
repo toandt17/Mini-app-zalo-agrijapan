@@ -24,6 +24,12 @@ class DatabaseSeeder extends Seeder
             // CategorySeeder::class,
             // ProductSeeder::class,
             AgentSeeder::class,
+
+            // Game system seeders
+            // RewardSeeder::class,           // Seeder cho phần thưởng
+            // SpinWheelSeeder::class,        // Seeder cho vòng quay may mắn
+            // MissionSeeder::class,          // Seeder cho nhiệm vụ
+            // QuizQuestionSeeder::class,     // Seeder cho câu hỏi trắc nghiệm
         ]);
     }
 }

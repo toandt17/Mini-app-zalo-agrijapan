@@ -121,6 +121,22 @@
                                     @enderror
                                 </div>
 
+                                <div class="col-md-6 position-relative">
+                                    <label for="open_hours" class="form-label tx-semibold">Giờ mở cửa</label>
+                                    <input type="text" class="form-control" id="open_hours" name="open_hours" value="{{ old('open_hours', $agent->open_hours) }}" placeholder="Ví dụ: 8:00 - 17:00, Thứ 2 - Thứ 6">
+                                    @error('open_hours')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6 position-relative">
+                                    <label for="description" class="form-label tx-semibold">Mô tả</label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" placeholder="Nhập mô tả về đại lý">{{ old('description', $agent->description) }}</textarea>
+                                    @error('description')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                                 <div class="col-md-12 position-relative">
                                     <label for="image" class="form-label tx-semibold">Hình ảnh đại lý</label>
                                     <input type="file" class="form-control" id="image" name="image" accept="image/jpg, image/jpeg, image/png" onchange="previewImage(event)">
@@ -129,8 +145,8 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-12">
-                                    <div id="imagePreviewContainer" style="position: relative; {{ $agent->image ? 'display: block;' : 'display: none;' }}">
-                                        <img id="imagePreview" src="{{ $agent->image ? asset('storage/' . $agent->image) : '#' }}" alt="Image Preview" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;" />
+                                    <div id="imagePreviewContainer" style="{{ $agent->image ? 'display: block;' : 'display: none;' }} position: relative; margin-top: 10px;">
+                                        <img id="imagePreview" src="{{ $agent->image ? asset('storage/' . $agent->image) : '#' }}" alt="Hình ảnh đại lý" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;" />
                                         <button type="button" onclick="removeImage()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>
                                     </div>
                                 </div>
@@ -149,6 +165,17 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Hiển thị ảnh đã lưu khi trang tải xong
+        const agentImage = "{{ $agent->image }}";
+        if (agentImage) {
+            document.getElementById('imagePreviewContainer').style.display = 'block';
+        }
+
+        // Khởi tạo dữ liệu các quận/huyện và phường/xã
+        loadDistricts();
+    });
+
     function previewImage(event) {
         var reader = new FileReader();
         reader.onload = function(){

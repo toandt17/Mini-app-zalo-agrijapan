@@ -35,8 +35,13 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.pie.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.resize.min.js"></script>
-	   
 
+		<!-- CSS tùy chỉnh -->
+		<style>
+			.badge {
+				color: #000 !important;
+			}
+		</style>
 
 	</head>
 
@@ -533,8 +538,8 @@
 		<script src="{{ asset('build/assets/plugins/jquery.flot/jquery.flot.js') }}"></script>
         <script src="{{ asset('build/assets/plugins/jquery.flot/jquery.flot.pie.js') }}"></script>
         <script src="{{ asset('build/assets/plugins/jquery.flot/jquery.flot.resize.js') }}"></script>
-		<link rel="modulepreload" href="{{ asset('build/assets/chart.flot.d2b112c5.js') }}" /><script type="module" src="build/assets/chart.flot.d2b112c5.js"></script>		
-        
+		<link rel="modulepreload" href="{{ asset('build/assets/chart.flot.d2b112c5.js') }}" /><script type="module" src="build/assets/chart.flot.d2b112c5.js"></script>
+
 		<!-- APEX CHARTS JS -->
 		<script src="{{ asset('assets/build/assets/plugins/apexcharts/apexcharts.js') }}"></script>
 

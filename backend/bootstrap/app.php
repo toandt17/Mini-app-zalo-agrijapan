@@ -27,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 'agent.php',
                 'dashboard.php',
                 'lucky_wheel.php',
+                'missions.php',
+                'questions.php',
+                'rewards.php',
+                'checkin.php',
             ];
 
             $clientRoutes = [

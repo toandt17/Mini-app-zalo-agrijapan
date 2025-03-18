@@ -39,9 +39,7 @@
                                             <th class="border-bottom-0">STT</th>
                                             <th class="border-bottom-0">Tên sản phẩm</th>
                                             <th class="border-bottom-0">Loại sản phẩm</th>
-                                            <th class="border-bottom-0">Số lượng hàng</th>
                                             <th class="border-bottom-0">Hình ảnh</th>
-                                            <th class="border-bottom-0">Giá</th>
                                             <th class="border-bottom-0">Trạng thái</th>
                                             <th class="border-bottom-0">Hành động</th>
                                         </tr>
@@ -52,11 +50,9 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $product->name }}</td>
                                             <td>{{ $product->category->name }}</td>
-                                            <td>{{ $product->quantity }}</td>
                                             <td> @if($product->image)
                                                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" style="max-width: 100px; height: auto;">
                                             @endif</td>
-                                            <td>{{ number_format($product->price, 0, ',', '.') }} VND</td>
                                             <td>{{ $product->status }}</td>
                                             <td>
                                                 <a href="{{ route('admin.products.edit', $product->id) }}" class="btn ripple btn-success"><i class="fe fe-edit"></i></a>

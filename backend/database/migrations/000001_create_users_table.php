@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('id_by_oa')->nullable();
             $table->boolean('followed_oa')->default(false);
             $table->boolean('is_sensitive')->default(false);
+            $table->integer('points')->default(0);
             $table->timestamp('last_login')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();

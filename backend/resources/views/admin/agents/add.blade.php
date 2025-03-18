@@ -53,7 +53,16 @@
                                     @enderror
                                 </div>
 
-                                <div class="col-md-12 position-relative">
+                                <div class="col-md-6 position-relative">
+                                    <label for="code_agent" class="form-label tx-semibold">Mã quy ước đại lý</label>
+                                    <input type="text" class="form-control" id="code_agent" name="code_agent" value="{{ old('code_agent') }}" placeholder="Nhập mã quy ước đại lý (Ví dụ: AG00001)">
+                                    <small class="form-text text-muted">Mã này sẽ được sử dụng để tạo mã barcode. Nếu không nhập, hệ thống sẽ tự tạo mã theo định dạng AG + ID.</small>
+                                    @error('code_agent')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6 position-relative">
                                     <label for="status" class="form-label tx-semibold">Trạng thái</label>
                                     <select class="form-control" id="status" name="status">
                                         <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Hoạt động</option>
@@ -116,6 +125,22 @@
                                     <label for="longitude" class="form-label tx-semibold">Kinh độ</label>
                                     <input type="text" class="form-control" id="longitude" name="longitude" value="{{ old('longitude') }}" placeholder="Nhập kinh độ">
                                     @error('longitude')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6 position-relative">
+                                    <label for="open_hours" class="form-label tx-semibold">Giờ mở cửa</label>
+                                    <input type="text" class="form-control" id="open_hours" name="open_hours" value="{{ old('open_hours') }}" placeholder="Ví dụ: 8:00 - 17:00, Thứ 2 - Thứ 6">
+                                    @error('open_hours')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6 position-relative">
+                                    <label for="description" class="form-label tx-semibold">Mô tả</label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" placeholder="Nhập mô tả về đại lý">{{ old('description') }}</textarea>
+                                    @error('description')
                                         <div class="text-danger">{{ $message }}</div>
                                     @enderror
                                 </div>

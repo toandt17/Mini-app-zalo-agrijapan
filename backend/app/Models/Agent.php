@@ -23,6 +23,29 @@ class Agent extends Model
         'image',
         'description',
         'open_hours',
+        'qr_code',
+        'qr_regeneration_count',
+        'qr_code_generated_at',
+        'code_agent',
+    ];
+
+    /**
+     * Các trường được tự động chuyển thành đối tượng Carbon
+     */
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'qr_code_generated_at',
+    ];
+
+    /**
+     * Các thuộc tính cần được cast
+     */
+    protected $casts = [
+        'qr_code_generated_at' => 'datetime',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'qr_regeneration_count' => 'integer',
     ];
 
     /**
@@ -79,4 +102,64 @@ class Agent extends Model
 
         return implode(', ', $parts);
     }
+
+    /**
+     * Lấy tất cả mã QR của đại lý
+     */
+    public function qrCodes()
+    {
+        return $this->hasMany(AgentQrCode::class);
+    }
+
+    /**
+     * Lấy mã QR mới nhất của đại lý
+     */
+    public function latestQrCode()
+    {
+        return $this->qrCodes()->latest('generated_at')->first();
+    }
+
+    /**
+     * Lấy tất cả mã barcode của đại lý
+     */
+    public function barcodes()
+    {
+        return $this->hasMany(AgentBarcode::class);
+    }
+
+    /**
+     * Lấy mã barcode mới nhất của đại lý
+     */
+    public function latestBarcode()
+    {
+        return $this->hasOne(AgentBarcode::class)
+            ->where('status', 'active')
+            ->latest('generated_at');
+    }
+
+    /**
+     * Lấy mã barcode mới nhất của đại lý (kết quả truy vấn)
+     */
+    public function getLatestBarcodeAttribute()
+    {
+        return $this->barcodes()
+            ->where('status', 'active')
+            ->latest('generated_at')
+            ->first();
+    }
+
+    /**
+     * Tạo mã quy ước đại lý nếu chưa có
+     */
+    public function generateCodeAgentIfNotExists()
+    {
+        if (empty($this->code_agent)) {
+            // Format: AG + ID của đại lý (đủ 5 chữ số, thêm 0 ở đầu nếu cần)
+            $this->code_agent = 'AG' . str_pad($this->id, 5, '0', STR_PAD_LEFT);
+            $this->save();
+        }
+
+        return $this->code_agent;
+    }
 }
+

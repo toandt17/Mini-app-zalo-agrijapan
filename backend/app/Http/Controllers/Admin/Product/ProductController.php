@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -35,8 +36,6 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'original_price' => 'nullable|numeric|min:0',
             'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'detail' => 'nullable|string',
         ]);
@@ -72,8 +71,6 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'original_price' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'detail' => 'nullable|string',
         ]);
@@ -139,12 +136,12 @@ class ProductController extends Controller
         $keyword = $request->input('keyword', '');
 
         // Log để debug
-        \Log::info('Search keyword: ' . $keyword);
+        Log::info('Search keyword: ' . $keyword);
 
         $products = $this->productRepository->searchByKeyword($keyword);
 
         // Log kết quả
-        \Log::info('Search results count: ' . count($products));
+        Log::info('Search results count: ' . count($products));
 
         return response()->json($products);
     }

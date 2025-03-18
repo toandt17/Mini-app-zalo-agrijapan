@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import TransitionLink from "@/components/transition-link";
-import { Category as CategoryType } from "@/types";
 import { getTopCategories } from "@/api/categoryApi";
 
+// Định nghĩa type Category nếu chưa có trong @/types
+interface Category {
+  id: number;
+  name: string;
+  image: string;
+}
+
 export default function CategoryList() {
-  const [categories, setCategories] = useState<CategoryType[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -20,30 +26,27 @@ export default function CategoryList() {
   }, []);
 
   return (
-    <div
-      className="bg-section grid gap-x-2 gap-y-4 py-2 px-4 overflow-x-auto"
-      style={{
-        gridTemplateColumns: `repeat(${Math.ceil(
-          categories.length > 4 ? categories.length / 2 : categories.length
-        )}, minmax(70px, 1fr))`,
-      }}
-    >
-      {categories.map((category) => (
-        <TransitionLink
-          key={category.id}
-          className="flex flex-col items-center space-y-1 flex-none overflow-hidden cursor-pointer mx-auto"
-          to={`/category/${category.id}`}
-        >
-          <img
-            src={`http://127.0.0.1:8000/storage/${category.image}`}
-            className="w-12 h-12 object-cover rounded-full bg-skeleton"
-            alt={category.name}
-          />
-          <div className="text-center text-3xs w-full line-clamp-2 text-subtitle">
-            {category.name}
-          </div>
-        </TransitionLink>
-      ))}
+    <div className="bg-white py-4 px-2">
+      <div className="grid grid-cols-5 gap-2">
+        {categories.map((category) => (
+          <TransitionLink
+            key={category.id}
+            className="flex flex-col items-center justify-center space-y-2 cursor-pointer"
+            to={`/category/${category.id}`}
+          >
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-green-100 flex items-center justify-center bg-green-50 p-1">
+              <img
+                src={`http://127.0.0.1:8000/storage/${category.image}`}
+                className="w-full h-full object-cover rounded-full"
+                alt={category.name}
+              />
+            </div>
+            <div className="text-center text-xs font-medium text-gray-700 w-full line-clamp-2">
+              {category.name}
+            </div>
+          </TransitionLink>
+        ))}
+      </div>
     </div>
   );
 }

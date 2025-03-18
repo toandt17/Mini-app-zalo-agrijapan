@@ -24,6 +24,10 @@ return new class extends Migration
             $table->decimal('longitude', 10, 7)->nullable();
             $table->text('description')->nullable();
             $table->string('open_hours')->nullable();
+            $table->string('qr_code')->nullable();
+            $table->integer('qr_regeneration_count')->default(0);
+            $table->timestamp('qr_code_generated_at')->nullable();
+            $table->string('code_agent')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
 

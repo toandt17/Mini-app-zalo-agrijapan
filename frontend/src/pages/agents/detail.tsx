@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Page, Box, Text, Button, useSnackbar } from 'zmp-ui';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Agent } from '@/types';
-import { MapPin, Phone, Mail, ArrowLeft, AlertCircle, Store, Clock, RefreshCcw, Check } from 'lucide-react';
+import { MapPin, Phone, Mail, ArrowLeft, AlertCircle, Store, Clock, RefreshCcw, Check, Calendar, QrCode } from 'lucide-react';
 import { getUserInfo, getPhoneNumber, getAccessToken, getLocation } from "zmp-sdk";
 import { Icon } from 'zmp-ui';
 
@@ -18,6 +18,7 @@ const AgentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { openSnackbar } = useSnackbar();
+  const location = useLocation();
   const [agent, setAgent] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,18 @@ const AgentDetailPage: React.FC = () => {
   const [permissionsChecked, setPermissionsChecked] = useState<boolean>(false);
   const [phonePermissionGranted, setPhonePermissionGranted] = useState<boolean>(false);
   const [locationPermissionGranted, setLocationPermissionGranted] = useState<boolean>(false);
+  const [isFromQrCode, setIsFromQrCode] = useState<boolean>(false);
+  const [qrCreatedTime, setQrCreatedTime] = useState<string | null>(null);
+
+  // Kiểm tra nếu truy cập từ mã QR (có tham số created)
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const createdParam = queryParams.get('created');
+    if (createdParam) {
+      setIsFromQrCode(true);
+      console.log("Accessing from QR code with token:", createdParam);
+    }
+  }, [location]);
 
   // Kiểm tra quyền truy cập khi component được mount
   useEffect(() => {
@@ -245,12 +258,28 @@ const AgentDetailPage: React.FC = () => {
     console.log("Fetching agent detail for ID:", id);
     setLoading(true);
     try {
+      // Lấy tham số created từ URL nếu có
+      const queryParams = new URLSearchParams(location.search);
+      const createdParam = queryParams.get('created');
+      
       let url = `/agents/${id}`;
+      const params: any = {};
       
       // Thêm thông tin vị trí nếu có
       if (userLocation?.latitude && userLocation?.longitude) {
-        url += `?lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
-        console.log("Adding location to URL:", url);
+        params.lat = userLocation.latitude;
+        params.lng = userLocation.longitude;
+      }
+      
+      // Thêm tham số created nếu có
+      if (createdParam) {
+        params.created = createdParam;
+      }
+      
+      // Tạo URL với các tham số
+      const queryString = new URLSearchParams(params).toString();
+      if (queryString) {
+        url += `?${queryString}`;
       }
       
       console.log("Making API request to:", apiClient.defaults.baseURL + url);
@@ -259,6 +288,12 @@ const AgentDetailPage: React.FC = () => {
       
       if (response.data && response.data.data) {
         setAgent(response.data.data);
+        
+        // Kiểm tra thông tin mã QR
+        if (response.data.data.qr_info) {
+          setQrCreatedTime(response.data.data.qr_info.created_time);
+        }
+        
         setError(null);
       } else {
         console.error('Invalid response format:', response.data);
@@ -472,6 +507,18 @@ const AgentDetailPage: React.FC = () => {
                   </span>
                 )}
                 
+                {/* Show QR scan badge if accessed from QR code */}
+                {isFromQrCode && (
+                  <div className="mb-3">
+                    <span className="inline-block bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                      <div className="flex items-center">
+                        <QrCode size={12} className="mr-1" />
+                        <span>Mã QR đã quét</span>
+                      </div>
+                    </span>
+                  </div>
+                )}
+                
                 <Text className="text-white text-opacity-90 mb-2 flex items-center">
                   <MapPin size={16} className="mr-2 flex-shrink-0" /> 
                   <span>{agent.full_address}</span>
@@ -485,6 +532,36 @@ const AgentDetailPage: React.FC = () => {
                 )}
               </Box>
             </Box>
+            
+            {/* QR Code Information - Only shown if accessed from QR */}
+            {isFromQrCode && qrCreatedTime && (
+              <Box className="bg-yellow-50 p-4 rounded-lg shadow-md border border-yellow-100 mb-6">
+                <Box className="flex items-center mb-2">
+                  <QrCode className="text-yellow-600 mr-2" size={20} />
+                  <Text className="font-bold text-yellow-800">Thông tin mã QR</Text>
+                </Box>
+                <Box className="space-y-2">
+                  <Box className="flex items-start">
+                    <Calendar size={16} className="text-yellow-600 mr-2 mt-1 flex-shrink-0" />
+                    <Box>
+                      <Text className="text-yellow-800 text-sm">Thời gian tạo mã QR:</Text>
+                      <Text className="font-medium text-yellow-900">{qrCreatedTime}</Text>
+                    </Box>
+                  </Box>
+                  <Box className="flex items-start">
+                    <Clock size={16} className="text-yellow-600 mr-2 mt-1 flex-shrink-0" />
+                    <Box>
+                      <Text className="text-yellow-800 text-sm">Thời gian quét:</Text>
+                      <Text className="font-medium text-yellow-900">{new Date().toLocaleString('vi-VN')}</Text>
+                    </Box>
+                  </Box>
+                  <Text className="text-xs text-yellow-700 mt-2">
+                    Mã QR này được tạo bởi hệ thống quản lý đại lý của chúng tôi. 
+                    Mọi thắc mắc vui lòng liên hệ với đại lý trực tiếp.
+                  </Text>
+                </Box>
+              </Box>
+            )}
             
             {/* Quick Action Buttons */}
             <Box className="flex gap-2 mb-6">
