@@ -20,6 +20,12 @@ return new class extends Migration
             $table->string('url')->nullable()->comment('URL đầy đủ được mã hóa trong mã QR');
             $table->text('metadata')->nullable()->comment('Thông tin khác (nếu có) được lưu dưới dạng JSON');
             $table->boolean('is_active')->default(true)->comment('Trạng thái của mã QR, true = còn sử dụng được');
+
+            // Thêm các trường mới cho theo dõi lượt quét
+            $table->integer('scan_count')->default(0)->comment('Tổng số lần mã QR được quét');
+            $table->integer('unique_scan_count')->default(0)->comment('Số lượng người quét khác nhau');
+            $table->timestamp('last_scanned_at')->nullable()->comment('Thời gian quét gần nhất');
+
             $table->timestamps();
 
             // Index để tìm kiếm nhanh

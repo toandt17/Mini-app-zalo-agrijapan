@@ -21,6 +21,16 @@ class CheckinRepository implements CheckinInterface
         'consecutive_bonus' => true
     ];
 
+    // Đường dẫn đến file cấu hình
+    protected $settingsPath;
+    protected $rewardsPath;
+
+    public function __construct()
+    {
+        $this->settingsPath = 'config/checkin_settings.json';
+        $this->rewardsPath = 'config/checkin_rewards.json';
+    }
+
     /**
      * Lấy danh sách lịch sử điểm danh của tất cả người dùng
      *
@@ -133,42 +143,87 @@ class CheckinRepository implements CheckinInterface
      */
     public function getCheckinSettings()
     {
-        // Sử dụng cache để tránh đọc file liên tục
-        return Cache::remember('checkin_settings', 60, function () {
-            // Nếu file tồn tại, đọc từ file
-            if (File::exists(base_path($this->configPath))) {
-                $settings = json_decode(File::get(base_path($this->configPath)), true);
-                return $settings ?: $this->defaultSettings;
-            }
+        if (!File::exists($this->settingsPath)) {
+            // Cài đặt mặc định nếu file không tồn tại
+            $settings = [
+                'points_reward' => 10,
+                'spin_tickets_reward' => 1,
+                'consecutive_bonus' => true,
+            ];
+            // Lưu cài đặt mặc định
+            File::put($this->settingsPath, json_encode($settings, JSON_PRETTY_PRINT));
+            return $settings;
+        }
 
-            // Nếu không có file, sử dụng giá trị mặc định
-            return $this->defaultSettings;
-        });
+        // Đọc file cài đặt
+        $settingsContent = File::get($this->settingsPath);
+        return json_decode($settingsContent, true);
     }
 
     /**
-     * Cập nhật cài đặt điểm danh
+     * Lưu cài đặt điểm danh vào file JSON
      *
-     * @param array $settings Các cài đặt mới
+     * @param array $settings
+     * @return bool
+     */
+    public function saveCheckinSettings($settings)
+    {
+        // Đảm bảo thư mục tồn tại
+        File::ensureDirectoryExists(dirname($this->settingsPath));
+        // Lưu cài đặt
+        return File::put($this->settingsPath, json_encode($settings, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Lấy phần thưởng điểm danh từ file JSON
+     *
+     * @return array
+     */
+    public function getCheckinRewards()
+    {
+        if (!File::exists($this->rewardsPath)) {
+            // Phần thưởng mặc định nếu file không tồn tại
+            $rewards = [
+                ['day' => 1, 'name' => '5 điểm', 'points' => 5, 'spin_tickets' => 0],
+                ['day' => 2, 'name' => '10 điểm', 'points' => 10, 'spin_tickets' => 0],
+                ['day' => 3, 'name' => '15 điểm', 'points' => 15, 'spin_tickets' => 0],
+                ['day' => 4, 'name' => '20 điểm', 'points' => 20, 'spin_tickets' => 0],
+                ['day' => 5, 'name' => '1 lượt quay', 'points' => 0, 'spin_tickets' => 1],
+                ['day' => 6, 'name' => '30 điểm', 'points' => 30, 'spin_tickets' => 0],
+                ['day' => 7, 'name' => '50 điểm + 2 lượt quay', 'points' => 50, 'spin_tickets' => 2],
+            ];
+            // Lưu phần thưởng mặc định
+            File::put($this->rewardsPath, json_encode($rewards, JSON_PRETTY_PRINT));
+            return $rewards;
+        }
+
+        // Đọc file phần thưởng
+        $rewardsContent = File::get($this->rewardsPath);
+        return json_decode($rewardsContent, true);
+    }
+
+    /**
+     * Lưu phần thưởng điểm danh vào file JSON
+     *
+     * @param array $rewards
+     * @return bool
+     */
+    public function saveCheckinRewards($rewards)
+    {
+        // Đảm bảo thư mục tồn tại
+        File::ensureDirectoryExists(dirname($this->rewardsPath));
+        // Lưu phần thưởng
+        return File::put($this->rewardsPath, json_encode($rewards, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Alias của saveCheckinSettings để tương thích ngược
+     *
+     * @param array $settings
      * @return bool
      */
     public function updateCheckinSettings(array $settings)
     {
-        // Tạo thư mục config nếu chưa tồn tại
-        $configDir = dirname(base_path($this->configPath));
-        if (!File::exists($configDir)) {
-            File::makeDirectory($configDir, 0755, true);
-        }
-
-        // Lưu cài đặt mới vào file
-        File::put(
-            base_path($this->configPath),
-            json_encode($settings, JSON_PRETTY_PRINT)
-        );
-
-        // Xóa cache cũ
-        Cache::forget('checkin_settings');
-
-        return true;
+        return $this->saveCheckinSettings($settings);
     }
 }

@@ -56,7 +56,7 @@
 
                                 <div class="form-group">
                                     <label for="action_required">Hành động yêu cầu <span class="text-danger">*</span></label>
-                                    <select id="action_required" name="action_required" class="form-control" required>
+                                    <select id="action_required" name="action_required" class="form-control" required onchange="toggleActionDataFields()">
                                         <option value="">-- Chọn hành động --</option>
                                         <option value="login_daily" {{ old('action_required', $mission->action_required) == 'login_daily' ? 'selected' : '' }}>Đăng nhập hàng ngày</option>
                                         <option value="complete_profile" {{ old('action_required', $mission->action_required) == 'complete_profile' ? 'selected' : '' }}>Hoàn thành hồ sơ</option>
@@ -76,6 +76,57 @@
                                         <option value="refer_users" {{ old('action_required', $mission->action_required) == 'refer_users' ? 'selected' : '' }}>Giới thiệu người dùng</option>
                                         <option value="reach_points" {{ old('action_required', $mission->action_required) == 'reach_points' ? 'selected' : '' }}>Đạt điểm tích lũy</option>
                                     </select>
+                                </div>
+
+                                <!-- Dynamic Action Data Fields -->
+                                <div id="actionDataContainer" class="action-data-fields mb-4">
+                                    @php
+                                        $actionData = old('action_data', $mission->action_data ? json_decode($mission->action_data, true) : []);
+                                    @endphp
+
+                                    <!-- URL Field -->
+                                    <div id="url_field" class="form-group d-none">
+                                        <label for="action_url">Đường dẫn URL <span class="text-danger">*</span></label>
+                                        <input type="url" id="action_url" name="action_data[url]" class="form-control"
+                                               value="{{ $actionData['url'] ?? '' }}" placeholder="https://example.com">
+                                        <small class="text-muted">Nhập đường dẫn đầy đủ (bao gồm https://)</small>
+                                    </div>
+
+                                    <!-- Article IDs Field -->
+                                    <div id="article_ids_field" class="form-group d-none">
+                                        <label for="article_ids">Chọn bài viết</label>
+                                        <select id="article_ids" name="action_data[article_ids][]" class="form-control" multiple>
+                                            @foreach($articles ?? [] as $article)
+                                                <option value="{{ $article->id }}"
+                                                    {{ in_array($article->id, $actionData['article_ids'] ?? []) ? 'selected' : '' }}>
+                                                    {{ $article->title }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <small class="text-muted">Bỏ trống nếu áp dụng với tất cả bài viết</small>
+                                    </div>
+
+                                    <!-- Required Count Field -->
+                                    <div id="required_count_field" class="form-group d-none">
+                                        <label for="required_count">Số lượng yêu cầu</label>
+                                        <input type="number" id="required_count" name="action_data[required_count]" class="form-control"
+                                               value="{{ $actionData['required_count'] ?? 1 }}" min="1">
+                                        <small class="text-muted">Số lượng lần hoàn thành để hoàn tất nhiệm vụ</small>
+                                    </div>
+
+                                    <!-- Watch Duration Field -->
+                                    <div id="watch_duration_field" class="form-group d-none">
+                                        <label for="watch_duration">Thời gian xem tối thiểu (giây)</label>
+                                        <input type="number" id="watch_duration" name="action_data[watch_duration]" class="form-control"
+                                               value="{{ $actionData['watch_duration'] ?? 60 }}" min="1">
+                                    </div>
+
+                                    <!-- Required Points Field -->
+                                    <div id="required_points_field" class="form-group d-none">
+                                        <label for="required_points">Điểm yêu cầu</label>
+                                        <input type="number" id="required_points" name="action_data[required_points]" class="form-control"
+                                               value="{{ $actionData['required_points'] ?? 100 }}" min="1">
+                                    </div>
                                 </div>
 
                                 <div class="row">
@@ -122,4 +173,71 @@
     </div>
 </div>
 
+<script>
+function toggleActionDataFields() {
+    // Lấy loại hành động được chọn
+    const actionType = document.getElementById('action_required').value;
+
+    // Ẩn tất cả các trường
+    const allFields = ['url_field', 'article_ids_field', 'required_count_field', 'watch_duration_field', 'required_points_field'];
+    allFields.forEach(field => {
+        if (document.getElementById(field)) {
+            document.getElementById(field).classList.add('d-none');
+        } else {
+            console.error("Element not found:", field);
+        }
+    });
+
+    // Hiển thị các trường phù hợp dựa trên loại hành động
+    switch (actionType) {
+        case 'watch_youtube':
+            document.getElementById('url_field').classList.remove('d-none');
+            document.getElementById('required_count_field').classList.remove('d-none');
+            document.getElementById('watch_duration_field').classList.remove('d-none');
+            break;
+
+        case 'read_articles':
+            document.getElementById('article_ids_field').classList.remove('d-none');
+            document.getElementById('required_count_field').classList.remove('d-none');
+            break;
+
+        case 'comment_posts':
+            document.getElementById('article_ids_field').classList.remove('d-none');
+            document.getElementById('required_count_field').classList.remove('d-none');
+            break;
+
+        case 'follow_zalo_page':
+        case 'follow_tiktok':
+        case 'share_facebook':
+        case 'join_livestream':
+        case 'tiktok_review':
+            document.getElementById('url_field').classList.remove('d-none');
+            break;
+
+        case 'login_streak':
+        case 'refer_users':
+            document.getElementById('required_count_field').classList.remove('d-none');
+            break;
+
+        case 'reach_points':
+            document.getElementById('required_points_field').classList.remove('d-none');
+            break;
+    }
+}
+
+// Chạy hàm khi trang được tải và khi dropdown thay đổi
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM content loaded, running toggleActionDataFields");
+    toggleActionDataFields();
+
+    // Thêm sự kiện để kiểm tra khi DOM thay đổi
+    setTimeout(function() {
+        toggleActionDataFields();
+        console.log("Running toggleActionDataFields after timeout");
+    }, 500);
+});
+</script>
+
 @endsection
+
+

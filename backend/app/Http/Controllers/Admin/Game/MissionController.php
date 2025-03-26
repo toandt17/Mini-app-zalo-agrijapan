@@ -59,10 +59,17 @@ class MissionController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
+            'action_required' => 'required|string',
+            'action_data' => 'nullable|array',
             'points_reward' => 'required|integer|min:0',
             'spin_tickets' => 'required|integer|min:0',
             'reward_id' => 'nullable|exists:rewards,id',
         ]);
+
+        // Xử lý action_data và chuyển thành chuỗi JSON
+        if (isset($validated['action_data'])) {
+            $validated['action_data'] = json_encode($validated['action_data']);
+        }
 
         DB::beginTransaction();
         try {
@@ -143,10 +150,17 @@ class MissionController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
+            'action_required' => 'required|string',
+            'action_data' => 'nullable|array',
             'points_reward' => 'required|integer|min:0',
             'spin_tickets' => 'required|integer|min:0',
             'reward_id' => 'nullable|exists:rewards,id',
         ]);
+
+        // Xử lý action_data và chuyển thành chuỗi JSON
+        if (isset($validated['action_data'])) {
+            $validated['action_data'] = json_encode($validated['action_data']);
+        }
 
         DB::beginTransaction();
         try {

@@ -9,12 +9,17 @@ use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\QrCodeController;
 use App\Http\Controllers\Api\BarcodeController;
+use App\Http\Controllers\QrCodeScanController;
+use App\Http\Controllers\Api\CheckinController;
 
 // Các route cho Zalo Mini App
 Route::post('/users/save', [ZaloUserController::class, 'saveUser']);
 Route::post('/users/phone', [ZaloUserController::class, 'processPhoneToken']);
 Route::post('/zalo/process-phone-token', [ZaloUserController::class, 'processPhoneToken']);
 Route::post('/zalo/process-location-token', [ZaloUserController::class, 'processLocationToken']);
+Route::post('/users/update-profile', [ZaloUserController::class, 'updateProfile']);
+Route::post('/users/get-by-phone', [ZaloUserController::class, 'getUserByPhone']);
+Route::post('/users/get-by-zalo-id', [ZaloUserController::class, 'getUserByZaloId']);
 // Các route cho đại lý
 Route::get('/agents', [AgentController::class, 'index']);
 Route::get('/agents/{id}', [AgentController::class, 'show']);
@@ -154,12 +159,52 @@ Route::get('/debug/routes', function() {
 
 // Các route cho các trò chơi
 Route::get('/games/lucky_wheel', [GameController::class, 'index']);
+Route::get('/user/spin-tickets/{userId}', [GameController::class, 'getUserSpinTickets']);
+Route::post('/user/use-spin-ticket', [GameController::class, 'useSpinTicket']);
+Route::post('/user/add-spin-tickets', [GameController::class, 'addSpinTickets']);
+Route::get('/user/spin-history/{userId}', [GameController::class, 'getSpinHistory']);
+
+// Thêm các routes cho quản lý quà tặng người dùng
+Route::get('/user/gifts/{userId}', [GameController::class, 'getUserGifts']);
+Route::post('/user/claim-gift', [GameController::class, 'claimUserGift']);
+Route::get('/user/gifts/history/{userId}', [GameController::class, 'getGiftHistory']);
+
+// Route cho chức năng điểm danh hàng ngày
+Route::prefix('checkin')->group(function () {
+    Route::post('/daily', [CheckinController::class, 'checkIn']);
+    Route::get('/history', [CheckinController::class, 'getHistory']);
+    Route::get('/rewards', [CheckinController::class, 'getRewards']);
+});
 
 // API routes for barcode verification
 Route::prefix('barcode')->group(function () {
     Route::get('/verify/{barcodeValue}', [BarcodeController::class, 'verify']);
 });
 
+//Quét mã QR ra số lần quét với người quét
+Route::get('/agent/qr/{id}', [QrCodeScanController::class, 'viewAgent'])->name('agent.qr.view');
+Route::get('/agent/qr/{token}/scan', [QrCodeScanController::class, 'scan'])->name('agent.qr.scan');
+
+// Đường dẫn API liên quan đến điểm tích lũy
+Route::get('/user/points/transactions/{userId}', [GameController::class, 'getUserPointTransactions']);
+Route::get('/user/points/statistics/{userId}', [GameController::class, 'getUserPointsStatistics']);
+
+// Routes cho tính năng câu hỏi trắc nghiệm
+Route::get('/quiz/questions', [GameController::class, 'getQuizQuestions']);
+Route::post('/quiz/answer', [GameController::class, 'answerQuizQuestion']);
+Route::get('/quiz/history/{userId}', [GameController::class, 'getQuizHistory']);
+
+// Routes cho tính năng nhiệm vụ
+Route::get('/missions', [GameController::class, 'getMissions']);
+Route::get('/missions/{id}', [GameController::class, 'getMissionDetail']);
+Route::post('/missions/complete', [GameController::class, 'completeMission']);
+Route::get('/missions/history', [GameController::class, 'getMissionHistory']);
 
 
-
+Route::post('/articles/mark-read', [GameController::class, 'markArticleAsRead']);
+Route::post('/articles/add-comment', [GameController::class, 'markCommentAdded']);
+Route::post('/videos/mark-watched', [GameController::class, 'markVideoWatched']);
+Route::post('/verify/zalo-follow', [GameController::class, 'verifyZaloFollow']);
+Route::post('/verify/profile-completion', [GameController::class, 'verifyProfileCompletion']);
+Route::post('/missions/track-progress', [GameController::class, 'trackMissionProgress']);
+Route::get('/missions/progress/{userId}/{missionId}', [GameController::class, 'getMissionProgress']);

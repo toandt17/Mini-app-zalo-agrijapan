@@ -64,6 +64,7 @@ class AgentQrViewController extends Controller
                             ->first();
 
                         if ($qrCode) {
+                            $data['qrCreatedFormatted'] = $qrCode->created_at->format('d/m/Y H:i:s');
                             $data['qrSource'] = 'database';
                             $data['qrIsActive'] = $qrCode->is_active;
                         } else {

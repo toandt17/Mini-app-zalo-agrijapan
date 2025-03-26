@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Agent\AgentController;
 use App\Http\Controllers\Api\AgentController as ApiAgentController;
 use App\Http\Controllers\BarcodeViewController;
+use App\Http\Controllers\QrCodeScanController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/dai-ly')->name('agents.')->group(function () {
@@ -37,6 +38,9 @@ Route::prefix('/dai-ly')->name('agents.')->group(function () {
     // Route mới cho trang tìm kiếm barcode trong admin
     Route::get('/tim-kiem-barcode', [AgentController::class, 'searchBarcode'])->name('search-barcode');
     Route::post('/tim-kiem-barcode', [AgentController::class, 'processBarcodeSearch'])->name('process-barcode-search');
+
+    // Routes cho chi tiết lượt quét mã QR
+    Route::get('/chi-tiet-luot-quet-ma-qr/{id}/{qrCodeId}', [AgentController::class, 'qrScanDetails'])->name('qr-scan-details');
 });
 
 // Route cho API hiển thị chi tiết barcode EAN-13 (không yêu cầu xác thực)
@@ -44,3 +48,9 @@ Route::get('/barcode-ean13/{barcode}', [BarcodeViewController::class, 'showBarco
 
 Route::get('/agents', [ApiAgentController::class, 'index']);
 Route::get('/top-agents', [ApiAgentController::class, 'getTopAgents']);
+
+// Routes cho việc quét mã QR
+Route::get('/agent/qr/{token}/scan', [QrCodeScanController::class, 'scan'])->name('agent.qr.scan');
+Route::get('/agent/qr/{id}', [QrCodeScanController::class, 'viewAgent'])->name('agent.qr.view');
+
+

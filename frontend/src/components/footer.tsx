@@ -14,11 +14,11 @@ const NAV_ITEMS = [
     path: "/",
     icon: (props) => <HomeIcon {...props} />,
   },
-  {
-    name: "Đại lý",
-    path: "/categories",
-    icon: (props) => <CategoryIcon {...props} />,
-  },
+  // {
+  //   name: "Đại lý",
+  //   path: "/categories",
+  //   icon: (props) => <CategoryIcon {...props} />,
+  // },
   {
     name: "Trò chơi",
     path: "/games",

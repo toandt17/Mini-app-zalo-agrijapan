@@ -75,10 +75,10 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover mg-b-0">
+                                <table id="file-datatable" class="table table-bordered text-nowrap key-buttons border-bottom">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th>STT</th>
                                             <th>Người dùng</th>
                                             <th>Thông tin người dùng</th>
                                             <th>Ngày điểm danh</th>
@@ -90,7 +90,7 @@
                                     <tbody>
                                         @forelse($checkins as $checkin)
                                         <tr>
-                                            <td>{{ $checkin->id }}</td>
+                                            <td>{{ $loop->iteration }}</td>
                                             <td>
                                                 <a href="{{ route('admin.checkin.history', $checkin->user_id) }}">
                                                     {{ $checkin->user->name ?? 'Không xác định' }}
@@ -123,10 +123,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
-                            <div class="mt-4">
-                                {{ $checkins->appends(request()->except('page'))->links() }}
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -135,3 +131,61 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(function() {
+    var table = $('#file-datatable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copyHtml5',
+                text: '<i class="fe fe-copy"></i> Sao chép',
+                titleAttr: 'Sao chép dữ liệu',
+                className: 'btn btn-primary btn-sm'
+            },
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fe fe-file-text"></i> Excel',
+                titleAttr: 'Xuất Excel',
+                className: 'btn btn-success btn-sm'
+            },
+            {
+                extend: 'pdfHtml5',
+                text: '<i class="fe fe-file"></i> PDF',
+                titleAttr: 'Xuất PDF',
+                className: 'btn btn-danger btn-sm'
+            },
+            {
+                extend: 'colvis',
+                text: '<i class="fe fe-eye"></i> Hiển thị',
+                titleAttr: 'Hiển thị/ẩn cột',
+                className: 'btn btn-info btn-sm'
+            }
+        ],
+        responsive: true,
+        language: {
+            searchPlaceholder: 'Tìm kiếm...',
+            sSearch: '',
+            lengthMenu: '_MENU_ dòng/trang',
+            paginate: {
+                first: "Đầu tiên",
+                previous: "Trước",
+                next: "Tiếp",
+                last: "Cuối cùng"
+            },
+            info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+            infoEmpty: "Hiển thị 0 đến 0 của 0 mục",
+            infoFiltered: "(lọc từ _MAX_ mục)",
+            zeroRecords: "Không tìm thấy dữ liệu phù hợp",
+            emptyTable: "Không có dữ liệu"
+        },
+        pageLength: 10,
+        ordering: true,
+        columnDefs: [
+            { orderable: false, targets: [2, 6] } // Cột thông tin người dùng và thao tác không sắp xếp được
+        ]
+    });
+});
+</script>
+@endpush

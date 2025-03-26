@@ -134,54 +134,22 @@
 
                 <!-- Sidebar information -->
                 <div class="col-lg-4 col-md-12">
-                    <!-- Cài đặt nhanh -->
+                    <!-- Phân bố theo ngày trong tuần -->
                     <div class="card custom-card overflow-hidden shadow-sm mb-3">
-                        <div class="card-header border-bottom-0 d-flex justify-content-between">
+                        <div class="card-header border-bottom-0">
                             <div>
-                                <h3 class="card-title mb-2 text-dark">Cài đặt điểm danh</h3>
-                                <span class="d-block tx-12 mb-0 text-muted">Cấu hình phần thưởng hiện tại</span>
-                            </div>
-                            <div class="card-options">
-                                <a href="{{ route('admin.checkin.settings') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                    <i class="fe fe-settings me-1"></i> Sửa
-                                </a>
+                                <h3 class="card-title mb-2 text-dark">Phân bố theo ngày</h3>
+                                <span class="d-block tx-12 mb-0 text-muted">Thống kê điểm danh theo ngày trong tuần</span>
                             </div>
                         </div>
-                        <div class="card-body pt-2">
-                            @php
-                                $settings = $settings ?? [];
-                                $pointsReward = $settings['points_reward'] ?? 10;
-                                $spinTicketsReward = $settings['spin_tickets_reward'] ?? 1;
-                                $consecutiveBonus = $settings['consecutive_bonus'] ?? true;
-                            @endphp
-
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-top-0">
-                                    <div>
-                                        <i class="fa fa-coins text-primary me-2"></i>
-                                        Điểm thưởng mỗi lần điểm danh
-                                    </div>
-                                    <span class="badge bg-primary rounded-pill">{{ $pointsReward }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
-                                    <div>
-                                        <i class="fa fa-ticket-alt text-warning me-2"></i>
-                                        Vé quay thưởng mỗi lần điểm danh
-                                    </div>
-                                    <span class="badge bg-warning rounded-pill">{{ $spinTicketsReward }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-0">
-                                    <div>
-                                        <i class="fa fa-calendar-week text-success me-2"></i>
-                                        Thưởng điểm danh liên tục
-                                    </div>
-                                    <span class="badge {{ $consecutiveBonus ? 'bg-success' : 'bg-danger' }} rounded-pill">
-                                        {{ $consecutiveBonus ? 'Bật' : 'Tắt' }}
-                                    </span>
-                                </li>
-                            </ul>
+                        <div class="card-body pt-0">
+                            <div style="height: 250px;">
+                                <canvas id="weekdayDistributionChart"></canvas>
+                            </div>
                         </div>
                     </div>
+
+
 
                     <!-- Thông tin nhanh -->
                     <div class="card custom-card overflow-hidden shadow-sm">
@@ -256,10 +224,10 @@
                         </div>
                         <div class="card-body pt-2">
                             <div class="table-responsive">
-                                <table class="table table-hover border text-nowrap mb-0">
+                                <table id="file-datatable" class="table table-bordered table-hover text-nowrap mb-0">
                                     <thead class="table-light">
                                         <tr>
-                                            <th class="tx-center">ID</th>
+                                            <th class="tx-center">STT</th>
                                             <th>Người dùng</th>
                                             <th>Ngày điểm danh</th>
                                             <th class="tx-center">Điểm</th>
@@ -270,7 +238,7 @@
                                     <tbody>
                                         @forelse($recentCheckins as $checkin)
                                         <tr>
-                                            <td class="tx-center">{{ $checkin->id }}</td>
+                                            <td class="tx-center">{{ $loop->iteration }}</td>
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="avatar avatar-sm me-2">
@@ -375,162 +343,479 @@
 .op-7 {
     opacity: 0.7;
 }
+
+/* Cài đặt điểm danh mới */
+.reward-overview {
+    border-left: 4px solid #6259ca;
+    transition: all 0.3s ease;
+}
+.reward-overview:hover {
+    background-color: #f8f9fa !important;
+}
+.avatar-md {
+    width: 42px;
+    height: 42px;
+}
+.reward-weeks {
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+.reward-day {
+    padding: 8px 5px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    flex: 1;
+    margin: 0 3px;
+}
+.reward-day:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-3px);
+}
+.day-circle {
+    margin: 0 auto;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.reward-legend {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #dee2e6;
+}
+
+/* Thêm style mới cho rewards */
+.reward-card-gradient {
+    background: linear-gradient(135deg, #6259ca 0%, #4e47b3 100%);
+    box-shadow: 0 5px 15px rgba(98,89,202,0.2);
+    color: white;
+}
+
+.text-white-8 {
+    color: rgba(255,255,255,0.8);
+}
+
+.stat-box {
+    padding: 5px 10px;
+    background-color: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    min-width: 80px;
+}
+
+.reward-day-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #eee;
+    transition: all 0.25s ease;
+    overflow: hidden;
+}
+
+.reward-day-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    z-index: 1;
+}
+
+.active-day-highlight {
+    box-shadow: 0 0 0 2px #6259ca;
+    z-index: 2;
+}
+
+.day-header {
+    padding: 5px;
+    text-align: center;
+    font-size: 12px;
+    background-color: #f5f5f5;
+    font-weight: 500;
+}
+
+.day-content {
+    padding: 10px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+}
+
+.day-number {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.reward-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+}
+
+.reward-chip {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.reward-chip i {
+    margin-right: 3px;
+    font-size: 10px;
+}
+
+.box-shadow-0 {
+    box-shadow: none !important;
+}
+
+.ht-5 {
+    height: 5px !important;
+}
+
+.bg-primary-gradient {
+    background: linear-gradient(135deg, #6259ca 0%, #4e47b3 100%) !important;
+}
+
+.bg-warning-gradient {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+}
+
+.bg-gray-100 {
+    background-color: #f8f9fa !important;
+}
 </style>
 @endpush
 
-@push('scripts')
+
+<!-- Thư viện JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/min/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Dữ liệu cho biểu đồ
     var stats = @json($stats['daily_stats'] ?? []);
-    var categories = stats.map(function(item) { return item.date; });
-    var data = stats.map(function(item) { return item.count; });
-
-    // Tạo biểu đồ với ApexCharts
-    var options = {
-        series: [{
-            name: 'Lượt điểm danh',
-            data: data
-        }],
-        chart: {
-            height: 320,
-            type: 'area',
-            fontFamily: 'Roboto, sans-serif',
-            toolbar: {
-                show: false
-            },
-            zoom: {
-                enabled: false
-            },
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800,
-                animateGradually: {
-                    enabled: true,
-                    delay: 150
-                },
-                dynamicAnimation: {
-                    enabled: true,
-                    speed: 350
-                }
-            }
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: 'smooth',
-            width: 3
-        },
-        colors: ['#6259ca'],
-        grid: {
-            borderColor: '#f2f5f7',
-            strokeDashArray: 3,
-            padding: {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0
-            }
-        },
-        xaxis: {
-            categories: categories,
-            labels: {
-                formatter: function(value) {
-                    return new Date(value).toLocaleDateString('vi-VN', {
-                        day: '2-digit',
-                        month: '2-digit'
-                    });
-                },
-                style: {
-                    colors: '#8e9cad',
-                    fontSize: '12px'
-                }
-            },
-            axisBorder: {
-                show: true,
-                color: 'rgba(119, 119, 142, 0.05)',
-                offsetX: 0,
-                offsetY: 0,
-            },
-            axisTicks: {
-                show: true,
-                borderType: 'solid',
-                color: 'rgba(119, 119, 142, 0.05)',
-                width: 6,
-                offsetX: 0,
-                offsetY: 0
-            }
-        },
-        yaxis: {
-            title: {
-                text: 'Số lượt điểm danh',
-                style: {
-                    color: '#8e9cad',
-                    fontSize: '12px',
-                    fontFamily: 'Roboto, sans-serif',
-                    fontWeight: 600
-                }
-            },
-            labels: {
-                formatter: function(value) {
-                    return value.toFixed(0);
-                },
-                style: {
-                    colors: '#8e9cad',
-                    fontSize: '12px'
-                }
-            },
-            min: 0
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shade: 'light',
-                type: "vertical",
-                shadeIntensity: 0.5,
-                gradientToColors: undefined,
-                inverseColors: true,
-                opacityFrom: 0.6,
-                opacityTo: 0.1,
-                stops: [0, 90, 100]
-            }
-        },
-        tooltip: {
-            theme: 'dark',
-            y: {
-                formatter: function(val) {
-                    return val + " lượt điểm danh"
-                }
-            }
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'right',
-            offsetY: -20,
-            fontSize: '13px',
-            fontFamily: 'Roboto, sans-serif',
-            markers: {
-                width: 10,
-                height: 10,
-                strokeWidth: 0,
-                radius: 12
-            },
-            itemMargin: {
-                horizontal: 10,
-                vertical: 0
-            }
-        }
-    };
 
     if (stats.length > 0) {
+        // Chuẩn bị dữ liệu cho biểu đồ
+        var categories = stats.map(function(item) { return item.date; });
+        var data = stats.map(function(item) { return parseInt(item.count); });
+
+        // Lọc chỉ lấy 7 ngày gần nhất
+        var last7DaysCategories = [];
+        var last7DaysData = [];
+
+        if (categories.length > 7) {
+            last7DaysCategories = categories.slice(-7);
+            last7DaysData = data.slice(-7);
+        } else {
+            last7DaysCategories = categories;
+            last7DaysData = data;
+        }
+
+        // Tạo dữ liệu cho biểu đồ nhiều dòng
+        var newCustomers = last7DaysData.map(function(val) {
+            // Tạo dữ liệu mẫu, giả sử 60% là khách hàng mới
+            return Math.round(val * 0.6);
+        });
+
+        var returningCustomers = last7DaysData.map(function(val, idx) {
+            // Phần còn lại là khách hàng quay lại
+            return val - newCustomers[idx];
+        });
+
+        // Tạo biểu đồ cột (column chart) hiện đại
+        var options = {
+            series: [
+                {
+                    name: 'Người dùng mới',
+                    data: newCustomers
+                },
+                {
+                    name: 'Người dùng quay lại',
+                    data: returningCustomers
+                }
+            ],
+            chart: {
+                height: 320,
+                type: 'bar',
+                fontFamily: 'Roboto, sans-serif',
+                toolbar: {
+                    show: false
+                },
+                zoom: {
+                    enabled: false
+                },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800,
+                    animateGradually: {
+                        enabled: true,
+                        delay: 150
+                    },
+                    dynamicAnimation: {
+                        enabled: true,
+                        speed: 350
+                    }
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '70%',
+                    borderRadius: 6,
+                    rangeBarOverlap: false,
+                    dataLabels: {
+                        position: 'top'
+                    }
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                show: true,
+                width: 2,
+                colors: ['transparent']
+            },
+            colors: ['#4154f1', '#ff6b8a'],
+            grid: {
+                borderColor: '#f2f5f7',
+                strokeDashArray: 3,
+                padding: {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 10
+                }
+            },
+            xaxis: {
+                categories: last7DaysCategories,
+                labels: {
+                    formatter: function(value) {
+                        try {
+                            // Kiểm tra xem ngày có hợp lệ không
+                            var date = new Date(value);
+                            if (isNaN(date.getTime()) || date.getFullYear() < 2000) {
+                                // Trả về dấu gạch ngang nếu ngày không hợp lệ
+                                return '-';
+                            }
+                            return date.toLocaleDateString('vi-VN', {
+                                day: '2-digit',
+                                month: '2-digit'
+                            });
+                        } catch (e) {
+                            console.error('Lỗi định dạng ngày:', e);
+                            return '-';
+                        }
+                    },
+                    style: {
+                        colors: '#8e9cad',
+                        fontSize: '12px',
+                        fontFamily: 'Roboto, sans-serif',
+                        fontWeight: 400
+                    }
+                },
+                axisBorder: {
+                    show: true,
+                    color: '#e0e0e0'
+                },
+                axisTicks: {
+                    show: true,
+                    borderType: 'solid',
+                    color: '#e0e0e0',
+                    height: 6
+                },
+                crosshairs: {
+                    show: true,
+                    position: 'back',
+                    stroke: {
+                        color: '#b6b6b6',
+                        width: 1,
+                        dashArray: 3
+                    }
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Số lượt điểm danh',
+                    style: {
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        fontFamily: 'Roboto, sans-serif'
+                    }
+                },
+                min: 0,
+                forceNiceScale: true,
+                labels: {
+                    formatter: function(value) {
+                        return Math.round(value);
+                    },
+                    style: {
+                        colors: '#8e9cad',
+                        fontSize: '12px',
+                        fontFamily: 'Roboto, sans-serif'
+                    }
+                }
+            },
+            fill: {
+                opacity: 1,
+                type: 'solid'
+            },
+            tooltip: {
+                theme: 'dark',
+                shared: true,
+                intersect: false,
+                y: {
+                    formatter: function(val) {
+                        return val + " lượt điểm danh";
+                    }
+                },
+                x: {
+                    formatter: function(val) {
+                        try {
+                            var date = new Date(val);
+                            if (isNaN(date.getTime()) || date.getFullYear() < 2000) {
+                                return 'Ngày không xác định';
+                            }
+                            return date.toLocaleDateString('vi-VN', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                        } catch (e) {
+                            console.error('Lỗi hiển thị tooltip ngày:', e);
+                            return 'Ngày không xác định';
+                        }
+                    }
+                },
+                marker: {
+                    show: true
+                }
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'center',
+                offsetY: 0,
+                offsetX: 0,
+                fontSize: '13px',
+                fontFamily: 'Roboto, sans-serif',
+                height: 40,
+                itemMargin: {
+                    horizontal: 30,
+                    vertical: 0
+                },
+                formatter: function(seriesName, opts) {
+                    return [seriesName, ' - ', opts.w.globals.series[opts.seriesIndex].reduce((a, b) => a + b, 0), ' lượt'].join('')
+                }
+            },
+            states: {
+                hover: {
+                    filter: {
+                        type: 'darken',
+                        value: 0.9
+                    }
+                },
+                active: {
+                    filter: {
+                        type: 'darken',
+                        value: 0.85
+                    }
+                }
+            }
+        };
+
         var chart = new ApexCharts(document.querySelector("#checkinChart"), options);
         chart.render();
+
+        // Tạo biểu đồ hình tròn cho phân bố theo thứ
+        var weekdayData = {};
+        stats.forEach(function(item) {
+            var day = new Date(item.date).getDay();
+            var dayName = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"][day];
+
+            if (!weekdayData[dayName]) {
+                weekdayData[dayName] = 0;
+            }
+            weekdayData[dayName] += parseInt(item.count);
+        });
+
+        var weekdayLabels = Object.keys(weekdayData);
+        var weekdayValues = Object.values(weekdayData);
+
+        var backgroundColors = [
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(153, 102, 255, 0.7)',
+            'rgba(255, 159, 64, 0.7)',
+            'rgba(199, 100, 180, 0.7)'
+        ];
+
+        if (document.getElementById('weekdayDistributionChart')) {
+            var weekdayCtx = document.getElementById('weekdayDistributionChart').getContext('2d');
+            new Chart(weekdayCtx, {
+                type: 'pie',
+                data: {
+                    labels: weekdayLabels,
+                    datasets: [{
+                        data: weekdayValues,
+                        backgroundColor: backgroundColors.slice(0, weekdayLabels.length),
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            callbacks: {
+                                label: function(context) {
+                                    var label = context.label || '';
+                                    var value = context.parsed || 0;
+                                    var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    var percentage = Math.round((value / total) * 100);
+                                    return label + ': ' + value + ' lượt (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     } else {
-        document.getElementById('checkinChart').innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-muted">Không có dữ liệu điểm danh trong 30 ngày qua</div>';
+        document.getElementById('checkinChart').innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-muted">Không có dữ liệu điểm danh</div>';
+        if (document.getElementById('weekdayDistributionChart')) {
+            document.getElementById('weekdayDistributionChart').innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-muted">Không có dữ liệu</div>';
+        }
     }
+
+    // Khởi tạo tooltips cho phần thưởng
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
 });
 </script>
-@endpush

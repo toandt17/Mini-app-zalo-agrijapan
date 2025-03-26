@@ -150,7 +150,26 @@
                                                         @endif
                                                         @if($agent->qr_code_generated_at)
                                                             Cập nhật lần cuối: {{ \Carbon\Carbon::parse($agent->qr_code_generated_at)->format('d/m/Y H:i:s') }}<br>
-                                                            <span class="text-info small">Mã QR này chứa thông tin thời gian tạo. Khi quét, người dùng sẽ thấy thời gian mã QR được tạo.</span>
+                                                        @endif
+
+                                                        <!-- Thêm thông tin về số lần quét -->
+                                                        @if(isset($latestQrCode))
+                                                            <div class="mt-2 p-2 border rounded bg-light">
+                                                                <div class="d-flex justify-content-between">
+                                                                    <span>Tổng lượt quét:</span>
+                                                                    <span class="fw-bold text-primary">{{ $latestQrCode->scan_count ?? 0 }}</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between">
+                                                                    <span>Số người quét khác nhau:</span>
+                                                                    <span class="fw-bold text-info">{{ $latestQrCode->unique_scan_count ?? 0 }}</span>
+                                                                </div>
+                                                                @if($latestQrCode && $latestQrCode->last_scanned_at)
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <span>Lần quét gần nhất:</span>
+                                                                        <span class="fw-bold text-success">{{ \Carbon\Carbon::parse($latestQrCode->last_scanned_at)->format('d/m/Y H:i:s') }}</span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
                                                         @endif
                                                     </div>
                                                 </div>

@@ -17,8 +17,9 @@ return new class extends Migration {
             $table->unsignedBigInteger('reward_id')->nullable();
             $table->integer('points_reward')->default(0);
             $table->integer('spin_tickets')->default(0);
-            
+
             $table->string('action_required')->nullable()->comment('Hành động cần thực hiện: watch_youtube, share_facebook, follow_tiktok, etc');
+            $table->json('action_data')->nullable()->comment('Dữ liệu chi tiết như URL, số lượng, thời gian yêu cầu, v.v.');
             $table->integer('difficulty_level')->default(0);
             $table->integer('reward_spin_tickets')->default(1);
             $table->timestamps();

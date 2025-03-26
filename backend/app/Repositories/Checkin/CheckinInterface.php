@@ -30,17 +30,40 @@ interface CheckinInterface
     public function getCheckinStats(array $params = []);
 
     /**
-     * Lấy cài đặt điểm danh hiện tại
+     * Lấy cài đặt điểm danh
      *
-     * @return mixed
+     * @return array
      */
     public function getCheckinSettings();
 
     /**
-     * Cập nhật cài đặt điểm danh
+     * Lưu cài đặt điểm danh
+     *
+     * @param array $settings
+     * @return bool
+     */
+    public function saveCheckinSettings($settings);
+
+    /**
+     * Lấy phần thưởng điểm danh
+     *
+     * @return array
+     */
+    public function getCheckinRewards();
+
+    /**
+     * Lưu phần thưởng điểm danh
+     *
+     * @param array $rewards
+     * @return bool
+     */
+    public function saveCheckinRewards($rewards);
+
+    /**
+     * Alias cho saveCheckinSettings để tương thích ngược
      *
      * @param array $settings Các cài đặt mới
-     * @return mixed
+     * @return bool
      */
     public function updateCheckinSettings(array $settings);
 }

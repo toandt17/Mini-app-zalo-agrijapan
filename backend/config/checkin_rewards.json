@@ -1,0 +1,44 @@
+[
+    {
+        "day": 1,
+        "name": "5 điểm",
+        "points": 5,
+        "spin_tickets": 0
+    },
+    {
+        "day": 2,
+        "name": "10 điểm",
+        "points": 10,
+        "spin_tickets": 0
+    },
+    {
+        "day": 3,
+        "name": "15 điểm",
+        "points": 15,
+        "spin_tickets": 0
+    },
+    {
+        "day": 4,
+        "name": "20 điểm",
+        "points": 20,
+        "spin_tickets": 0
+    },
+    {
+        "day": 5,
+        "name": "1 lượt quay",
+        "points": 0,
+        "spin_tickets": 1
+    },
+    {
+        "day": 6,
+        "name": "30 điểm",
+        "points": 30,
+        "spin_tickets": 0
+    },
+    {
+        "day": 7,
+        "name": "50 điểm + 2 lượt quay",
+        "points": 50,
+        "spin_tickets": 2
+    }
+]

@@ -82,6 +82,39 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <th>Chi tiết yêu cầu</th>
+                                            <td>
+                                                @if($mission->action_data)
+                                                    @php
+                                                        $actionData = json_decode($mission->action_data, true);
+                                                    @endphp
+
+                                                    @if(is_array($actionData))
+                                                        <div class="bg-light p-3 rounded">
+                                                            <ul class="list-group">
+                                                                @foreach($actionData as $key => $value)
+                                                                    <li class="list-group-item border-0 bg-transparent">
+                                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
+                                                                        @if(is_array($value))
+                                                                            <pre>{{ json_encode($value, JSON_PRETTY_PRINT) }}</pre>
+                                                                        @elseif($key == 'url' && filter_var($value, FILTER_VALIDATE_URL))
+                                                                            <a href="{{ $value }}" target="_blank">{{ $value }}</a>
+                                                                        @else
+                                                                            {{ $value }}
+                                                                        @endif
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+                                                    @else
+                                                        <span class="badge bg-secondary">Không có dữ liệu chi tiết</span>
+                                                    @endif
+                                                @else
+                                                    <span class="badge bg-secondary">Không có dữ liệu chi tiết</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <th>Điểm thưởng</th>
                                             <td>{{ number_format($mission->points_reward) }} điểm</td>
                                         </tr>

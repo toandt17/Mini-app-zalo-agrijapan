@@ -21,7 +21,7 @@ class AgentSeeder extends Seeder
     protected $useGoogleMapsApi = false;
 
     // URL gốc của ứng dụng frontend
-    protected $frontendUrl = 'https://thiepcuoitoandao.id.vn'; // Thay đổi URL thành domain thực tế của bạn
+    protected $frontendUrl = 'https://agrijapanvn.com.vn'; // Thay đổi URL thành domain thực tế của bạn
 
     /**
      * Run the database seeds.

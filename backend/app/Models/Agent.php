@@ -161,5 +161,15 @@ class Agent extends Model
 
         return $this->code_agent;
     }
+
+    /**
+     * Lấy mã QR mới nhất của đại lý kèm thông tin số lần quét
+     */
+    public function getLatestQrCodeWithScanInfoAttribute()
+    {
+        return $this->qrCodes()
+            ->latest('generated_at')
+            ->first();
+    }
 }
 

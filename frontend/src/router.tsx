@@ -20,8 +20,12 @@ import LuckyWheelPage from "./pages/games/lucky-wheel";
 import CheckInPage from "./pages/games/check-in";
 import QuizPage from "./pages/games/quiz";
 import GameHistoryPage from "./pages/account/games";
+import UserGiftsPage from "./pages/account/gifts";
+import UserPointsPage from "./pages/account/points";
 import AgentsPage from "./pages/agents";
 import AgentDetailPage from "./pages/agents/detail";
+import Quiz from './pages/games/quiz';
+import Mission from './pages/games/mission';
 
 const router = createBrowserRouter(
   [
@@ -152,6 +156,22 @@ const router = createBrowserRouter(
           },
         },
         {
+          path: "/account/gifts",
+          element: <UserGiftsPage />,
+          handle: {
+            title: "Quà tặng của tôi",
+            noFooter: true,
+          },
+        },
+        {
+          path: "/account/points",
+          element: <UserPointsPage />,
+          handle: {
+            title: "Tích điểm của tôi",
+            noFooter: true,
+          },
+        },
+        {
           path: "/games",
           element: <GamesPage />,
           handle: {
@@ -196,6 +216,14 @@ const router = createBrowserRouter(
           handle: {
             title: "Chi tiết đại lý",
           },
+        },
+        {
+          path: '/quiz',
+          element: <Quiz />,
+        },
+        {
+          path: '/games/mission',
+          element: <Mission />,
         },
       ],
     },

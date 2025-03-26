@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { atomFamily, atomWithStorage, loadable, unwrap } from "jotai/utils";
-import {
+import type {
   Cart,
   Category,
   Delivery,
@@ -11,7 +11,11 @@ import {
   ShippingAddress,
   Station,
   UserInfo,
-} from "@/types";
+  GameActivity,
+  CheckInStatus,
+  QuizQuestion,
+  LuckyWheelData
+} from "./types.d";
 import { requestWithFallback } from "@/utils/request";
 import { getLocation, getPhoneNumber, getSetting, getUserInfo } from "zmp-sdk";
 import toast from "react-hot-toast";
@@ -19,15 +23,13 @@ import { calculateDistance } from "./utils/location";
 import { formatDistant } from "./utils/format";
 import CONFIG from "./config";
 import axios from 'axios';
+
 export const userInfoKeyState = atom(0);
 
 export const userInfoState = atom<Promise<UserInfo>>(async (get) => {
   get(userInfoKeyState);
 
-  // Nếu người dùng đã chỉnh sửa thông tin tài khoản trước đó, sử dụng thông tin đã lưu trữ
   const savedUserInfo = localStorage.getItem(CONFIG.STORAGE_KEYS.USER_INFO);
-  // Phía tích hợp có thể thay đổi logic này thành fetch từ server
-  // const savedUserInfo = await fetchUserInfo({ token: await getAccessToken() });
   if (savedUserInfo) {
     return JSON.parse(savedUserInfo);
   }
@@ -40,14 +42,13 @@ export const userInfoState = atom<Promise<UserInfo>>(async (get) => {
   } = await getSetting({});
   const isDev = !window.ZJSBridge;
   if (grantedUserInfo || isDev) {
-    // Người dùng cho phép truy cập tên và ảnh đại diện
     const { userInfo } = await getUserInfo({});
     const phone =
-      grantedPhoneNumber || isDev // Người dùng cho phép truy cập số điện thoại
+      grantedPhoneNumber || isDev 
         ? await get(phoneState)
-        : "";
+        : "";                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
     return {
-      name: userInfo.name,
+      name: userInfo.name,                 
       avatar: userInfo.avatar,
       phone,
       email: "",
@@ -62,10 +63,6 @@ export const phoneState = atom(async () => {
   let phone = "";
   try {
     const { token } = await getPhoneNumber({});
-    // Phía tích hợp làm theo hướng dẫn tại https://mini.zalo.me/documents/api/getPhoneNumber/ để chuyển đổi token thành số điện thoại người dùng ở server.
-    // phone = await decodeToken(token);
-
-    // Các bước bên dưới để demo chức năng, phía tích hợp có thể bỏ đi sau.
     toast(
       "Đã lấy được token chứa số điện thoại người dùng. Phía tích hợp cần decode token này ở server. Giả lập số điện thoại 0912345678...",
       {
@@ -161,10 +158,6 @@ export const stationsState = atom(async () => {
   let location: Location | undefined;
   try {
     const { token } = await getLocation({});
-    // Phía tích hợp làm theo hướng dẫn tại https://mini.zalo.me/documents/api/getLocation/ để chuyển đổi token thành thông tin vị trí người dùng ở server.
-    // location = await decodeToken(token);
-
-    // Các bước bên dưới để demo chức năng, phía tích hợp có thể bỏ đi sau.
     toast(
       "Đã lấy được token chứa thông tin vị trí người dùng. Phía tích hợp cần decode token này ở server. Giả lập vị trí tại VNG Campus...",
       {
@@ -212,7 +205,7 @@ export const shippingAddressState = atomWithStorage<
   ShippingAddress | undefined
 >(CONFIG.STORAGE_KEYS.SHIPPING_ADDRESS, undefined);
 
-export const ordersState = atomFamily((status: OrderStatus) =>
+export const ordersState = atomFamily((status:OrderStatus) =>
   atom(async () => {
     // Phía tích hợp thay đổi logic filter server-side nếu cần:
     // const serverSideFilteredData = await requestWithFallback<Order[]>(`/orders?status=${status}`, []);
@@ -229,17 +222,33 @@ export const deliveryModeState = atomWithStorage<Delivery["type"]>(
   "shipping"
 );
 
-export const luckyWheelState = atom(async () => {
+export const luckyWheelState = atom<LuckyWheelData>({
+  rewards: [],
+  remainingSpins: 3
+});
+
+export const luckyWheelDataState = atom(async (get) => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/games/lucky_wheel');
+    const response = await axios.get('https://thiepcuoitoandao.id.vn/games/lucky_wheel');
     console.log("Lucky Wheel API Data:", response.data);
-    return {
-      rewards: response.data.lucky_wheel || [],
-      remainingSpins: 1, 
-    };
+    
+    if (response.data && Array.isArray(response.data.lucky_wheel)) {
+      // Update the writable state
+      return {
+        rewards: response.data.lucky_wheel.map(item => ({
+          id: item.id,
+          name: item.prize_name,
+          type: 'product',
+          value: 0,
+          color: '#' + Math.floor(Math.random()*16777215).toString(16)
+        })),
+        remainingSpins: 0 // Will be updated from user's API
+      };
+    }
+    return { rewards: [], remainingSpins: 0 };
   } catch (error) {
     console.error("Lỗi khi lấy danh sách giải thưởng:", error);
-    return { rewards: [], remainingSpins: 3 };
+    return { rewards: [], remainingSpins: 0 };
   }
 });
 
@@ -261,3 +270,36 @@ export const quizQuestionsState = atom<QuizQuestion[]>([
   },
   // More quiz questions can be added here
 ]);
+
+// Thêm userState để lưu thông tin user đã xử lý từ API
+export const userState = atom<{
+  id: string | number;
+  name: string;
+  avatar?: string;
+  points?: number;
+  spin_tickets?: number;
+}>({
+  id: '',
+  name: 'Khách',
+});
+
+export const activeTabState = atom<string>('tab1');
+export const activeQuizState = atom<any>(null);
+export const quizzesState = atom<any[]>([]);
+
+// Mission states
+export const missionsState = atom<any[]>([
+  // Dữ liệu mẫu mặc định
+  {
+    id: 1,
+    name: "Đăng nhập hàng ngày",
+    description: "Đăng nhập vào ứng dụng mỗi ngày để nhận thưởng",
+    reward_id: null,
+    points_reward: 5,
+    spin_tickets: 1,
+    action_required: "login_daily",
+    status: "available"
+  }
+]);
+export const activeMissionState = atom<any>(null);
+export const missionFilterState = atom<string>('all'); // 'all', 'available', 'in_progress', 'completed'

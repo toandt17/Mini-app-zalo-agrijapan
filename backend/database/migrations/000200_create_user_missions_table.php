@@ -16,6 +16,10 @@ return new class extends Migration {
             $table->unsignedBigInteger('mission_id');
             $table->timestamp('completed_at')->useCurrent();
             $table->integer('spin_tickets_earned')->default(1);
+            $table->string('status')->default('available');
+            $table->float('progress')->default(0);
+            $table->json('progress_data')->nullable();
+            $table->timestamp('last_action_at')->nullable();
 
             // Foreign key constraints
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

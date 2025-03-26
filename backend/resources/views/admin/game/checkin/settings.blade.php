@@ -23,7 +23,7 @@
                 <div class="col-md-12">
                     <div class="card custom-card">
                         <div class="card-header">
-                            <h6 class="card-title">Cài đặt phần thưởng điểm danh</h6>
+                            <h6 class="card-title">Cài đặt chung điểm danh</h6>
                         </div>
                         <div class="card-body">
                             @if(session('success'))
@@ -32,35 +32,68 @@
                                 </div>
                             @endif
 
+                            @if(session('error'))
+                                <div class="alert alert-danger">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+
                             <form action="{{ route('admin.checkin.save-settings') }}" method="POST">
                                 @csrf
 
-                                <div class="form-group">
-                                    <label for="points_reward">Điểm thưởng mỗi lần điểm danh <span class="text-danger">*</span></label>
-                                    <input type="number" min="0" class="form-control @error('points_reward') is-invalid @enderror" id="points_reward" name="points_reward" value="{{ old('points_reward', $settings['points_reward'] ?? 10) }}" required>
-                                    <small class="form-text text-muted">Số điểm người dùng nhận được cho mỗi lần điểm danh</small>
-                                    @error('points_reward')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                                <div class="rewards-container mb-4">
+                                    @foreach(range(1, 7) as $day)
+                                        @php
+                                            $reward = collect($rewards ?? [])->firstWhere('day', $day);
+                                            $points = $reward['points'] ?? 0;
+                                            $spinTickets = $reward['spin_tickets'] ?? 0;
+                                            $name = $reward['name'] ?? '';
+                                        @endphp
+                                        <div class="card mb-3">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">Ngày {{ $day }}</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <input type="hidden" name="rewards[{{ $day }}][day]" value="{{ $day }}">
 
-                                <div class="form-group">
-                                    <label for="spin_tickets_reward">Vé quay thưởng mỗi lần điểm danh <span class="text-danger">*</span></label>
-                                    <input type="number" min="0" class="form-control @error('spin_tickets_reward') is-invalid @enderror" id="spin_tickets_reward" name="spin_tickets_reward" value="{{ old('spin_tickets_reward', $settings['spin_tickets_reward'] ?? 1) }}" required>
-                                    <small class="form-text text-muted">Số vé quay thưởng người dùng nhận được cho mỗi lần điểm danh</small>
-                                    @error('spin_tickets_reward')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                                                    <div class="col-md-12 mb-3">
+                                                        <div class="form-group">
+                                                            <label for="rewards_{{ $day }}_name">Tên phần thưởng</label>
+                                                            <input type="text" class="form-control" id="rewards_{{ $day }}_name" name="rewards[{{ $day }}][name]" value="{{ old('rewards.'.$day.'.name', $name) }}" placeholder="Nhập tên phần thưởng">
+                                                            <small class="form-text text-muted">Nếu để trống, tên sẽ được tạo tự động từ điểm và lượt quay</small>
+                                                        </div>
+                                                    </div>
 
-                                <div class="form-group">
-                                    <div class="d-flex align-items-center">
-                                        <label for="consecutive_bonus" class="me-3 mb-0">Thưởng điểm danh liên tục:</label>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="consecutive_bonus" name="consecutive_bonus" value="1" {{ (old('consecutive_bonus', $settings['consecutive_bonus'] ?? true)) ? 'checked' : '' }}>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="rewards_{{ $day }}_points">Điểm thưởng</label>
+                                                            <input type="number" min="0" class="form-control" id="rewards_{{ $day }}_points" name="rewards[{{ $day }}][points]" value="{{ old('rewards.'.$day.'.points', $points) }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="rewards_{{ $day }}_spin_tickets">Lượt quay</label>
+                                                            <input type="number" min="0" class="form-control" id="rewards_{{ $day }}_spin_tickets" name="rewards[{{ $day }}][spin_tickets]" value="{{ old('rewards.'.$day.'.spin_tickets', $spinTickets) }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <div class="form-text text-success" id="reward_preview_{{ $day }}">
+                                                        @if($points > 0 && $spinTickets > 0)
+                                                            {{ $points }} điểm + {{ $spinTickets }} lượt quay
+                                                        @elseif($points > 0)
+                                                            {{ $points }} điểm
+                                                        @elseif($spinTickets > 0)
+                                                            {{ $spinTickets }} lượt quay
+                                                        @else
+                                                            Không có phần thưởng
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <small class="text-muted ms-3">Bật để thưởng thêm điểm cho người dùng điểm danh nhiều ngày liên tiếp</small>
-                                    </div>
+                                    @endforeach
                                 </div>
 
                                 <div class="form-group mt-4">
@@ -72,68 +105,34 @@
                     </div>
                 </div>
 
-                <!-- Cài đặt nâng cao -->
+                <!-- Bảng xem trước phần thưởng -->
                 <div class="col-md-12 mt-4">
                     <div class="card custom-card">
                         <div class="card-header">
-                            <h6 class="card-title">Cài đặt điểm danh nâng cao</h6>
+                            <h6 class="card-title">Bảng tổng hợp phần thưởng điểm danh</h6>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info">
-                                <h5><i class="fas fa-info-circle"></i> Thông tin thưởng điểm danh liên tục</h5>
-                                <p class="mb-0">Khi bật tính năng thưởng điểm danh liên tục, người dùng sẽ nhận được phần thưởng tăng dần theo số ngày điểm danh liên tiếp:</p>
-                                <ul class="mt-2 mb-0">
-                                    <li>Ngày 1: 100% điểm thưởng cơ bản</li>
-                                    <li>Ngày 2-3: 120% điểm thưởng cơ bản</li>
-                                    <li>Ngày 4-6: 150% điểm thưởng cơ bản</li>
-                                    <li>Ngày 7+: 200% điểm thưởng cơ bản</li>
-                                </ul>
-                            </div>
-
-                            <div class="table-responsive mt-3">
-                                <table class="table table-bordered">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Điểm danh liên tục</th>
-                                            <th>Điểm thưởng</th>
-                                            <th>Vé quay thưởng</th>
+                                            <th>Ngày</th>
+                                            <th>Tên phần thưởng</th>
+                                            <th>Điểm</th>
+                                            <th>Lượt quay</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @php
-                                            $basePoints = $settings['points_reward'] ?? 10;
-                                            $baseTickets = $settings['spin_tickets_reward'] ?? 1;
-                                            $bonusEnabled = $settings['consecutive_bonus'] ?? true;
-                                        @endphp
+                                        @foreach($rewards ?? [] as $reward)
                                         <tr>
-                                            <td>Ngày 1</td>
-                                            <td>{{ $basePoints }}</td>
-                                            <td>{{ $baseTickets }}</td>
+                                                <td>Ngày {{ $reward['day'] }}</td>
+                                                <td>{{ $reward['name'] }}</td>
+                                                <td>{{ $reward['points'] }}</td>
+                                                <td>{{ $reward['spin_tickets'] }}</td>
                                         </tr>
-                                        <tr>
-                                            <td>Ngày 2-3</td>
-                                            <td>{{ $bonusEnabled ? round($basePoints * 1.2) : $basePoints }}</td>
-                                            <td>{{ $baseTickets }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Ngày 4-6</td>
-                                            <td>{{ $bonusEnabled ? round($basePoints * 1.5) : $basePoints }}</td>
-                                            <td>{{ $bonusEnabled ? $baseTickets + 1 : $baseTickets }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Ngày 7+</td>
-                                            <td>{{ $bonusEnabled ? round($basePoints * 2) : $basePoints }}</td>
-                                            <td>{{ $bonusEnabled ? $baseTickets + 2 : $baseTickets }}</td>
-                                        </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
-                            </div>
-
-                            <div class="mt-4">
-                                <div class="alert alert-secondary">
-                                    <i class="fe fe-info me-2"></i>
-                                    Cài đặt được lưu trong file cấu hình: <code>config/checkin_settings.json</code>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -160,5 +159,45 @@
         background-color: #6259ca;
         border-color: #6259ca;
     }
+
+    /* Card styles */
+    .rewards-container .card {
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .rewards-container .card-header {
+        border-radius: 8px 8px 0 0;
+        padding: 10px 15px;
+    }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        // Live preview của phần thưởng khi thay đổi giá trị
+        $('.rewards-container input[type="number"]').on('input', function() {
+            const dayId = $(this).closest('.card').find('input[type="hidden"]').val();
+            updateRewardPreview(dayId);
+        });
+
+        function updateRewardPreview(day) {
+            const points = parseInt($('#rewards_' + day + '_points').val()) || 0;
+            const spinTickets = parseInt($('#rewards_' + day + '_spin_tickets').val()) || 0;
+            let previewText = '';
+
+            if (points > 0 && spinTickets > 0) {
+                previewText = points + ' điểm + ' + spinTickets + ' lượt quay';
+            } else if (points > 0) {
+                previewText = points + ' điểm';
+            } else if (spinTickets > 0) {
+                previewText = spinTickets + ' lượt quay';
+            } else {
+                previewText = 'Không có phần thưởng';
+            }
+
+            $('#reward_preview_' + day).text(previewText);
+        }
+    });
+</script>
 @endpush

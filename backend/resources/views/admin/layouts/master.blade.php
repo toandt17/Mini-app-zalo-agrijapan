@@ -38,9 +38,6 @@
 
 		<!-- CSS tùy chỉnh -->
 		<style>
-			.badge {
-				color: #000 !important;
-			}
 		</style>
 
 	</head>

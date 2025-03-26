@@ -59,7 +59,10 @@
                                             <th style="width: 50px">#</th>
                                             <th style="width: 100px">Mã QR</th>
                                             <th>Token</th>
-                                            <th>Ngày tạo</th>
+                                            <th>Thời gian tạo</th>
+                                            <th>Lượt quét</th>
+                                            <th>Số người quét</th>
+                                            <th>Quét gần nhất</th>
                                             <th>Hành động</th>
                                         </tr>
                                     </thead>
@@ -79,10 +82,23 @@
                                                         <small>{{ $qr->qr_token }}</small>
                                                     </td>
                                                     <td>
-                                                        @if(is_string($qr->generated_at))
-                                                            {{ $qr->generated_at }}
+                                                        @if(is_string($qr->created_at))
+                                                            {{ $qr->created_at }}
                                                         @else
-                                                            {{ $qr->generated_at->format('d/m/Y H:i:s') }}
+                                                            {{ $qr->created_at->format('d/m/Y H:i:s') }}
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-primary text-white">{{ $qr->scan_count ?? 0 }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-info text-white">{{ $qr->unique_scan_count ?? 0 }}</span>
+                                                    </td>
+                                                    <td>
+                                                        @if($qr->last_scanned_at)
+                                                            {{ \Carbon\Carbon::parse($qr->last_scanned_at)->format('d/m/Y H:i:s') }}
+                                                        @else
+                                                            <span class="text-muted">Chưa có lượt quét</span>
                                                         @endif
                                                     </td>
                                                     <td>
@@ -94,6 +110,9 @@
                                                                 <a href="javascript:void(0)" onclick="printQRCode('{{ $agent->name }}', '{{ $agent->phone }}', '{{ $agent->full_address }}', '{{ asset($qr->qr_code_path) }}')" class="btn btn-sm btn-outline-secondary">
                                                                     <i class="fe fe-printer"></i> In mã QR
                                                                 </a>
+                                                                <a href="{{ route('admin.agents.qr-scan-details', ['id' => $agent->id, 'qrCodeId' => $qr->id]) }}" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fe fe-bar-chart-2"></i> Chi tiết lượt quét
+                                                                </a>
                                                             @endif
                                                         </div>
                                                     </td>
@@ -101,7 +120,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="6" class="text-center">Chưa có mã QR nào được tạo</td>
+                                                <td colspan="8" class="text-center">Chưa có mã QR nào được tạo</td>
                                             </tr>
                                         @endif
                                     </tbody>

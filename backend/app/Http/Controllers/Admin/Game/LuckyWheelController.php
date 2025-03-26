@@ -65,6 +65,7 @@ class LuckyWheelController extends Controller
             'remaining_quantity' => 'required|integer|min:0',
             'has_reward' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category' => 'required|integer|min:0|max:3',
         ]);
 
         // Xử lý upload hình ảnh
@@ -128,6 +129,7 @@ class LuckyWheelController extends Controller
             'has_reward' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'remove_image' => 'nullable|boolean',
+            'category' => 'required|integer|min:0|max:3',
         ]);
 
         // Xử lý upload hình ảnh

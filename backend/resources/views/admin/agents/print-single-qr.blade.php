@@ -5,29 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>In mã QR - {{ $agent->name }}</title>
     <style>
+        @page {
+            size: 35cm 22cm;
+            margin: 0;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             text-align: center;
+            width: 35cm;
+            height: 22cm;
         }
         .container {
             width: 100%;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 15px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            margin: 0;
+        }
+        .qr-wrapper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            flex-wrap: wrap;
         }
         .qr-card {
             border: 1px solid #ddd;
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: inline-block;
-            width: 300px;
+            padding: 15px;
+            width: 15cm;
+            height: 18cm;
+            margin: 0.5cm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         .qr-image {
-            width: 200px;
-            height: 200px;
+            width: 12cm;
+            height: 12cm;
             margin: 0 auto 15px;
         }
         .agent-name {
@@ -40,13 +60,8 @@
             color: #555;
             margin-bottom: 3px;
         }
-        .timestamp {
-            font-size: 12px;
-            color: #888;
-            margin-top: 10px;
-        }
         .button-group {
-            margin: 20px 0;
+            margin: 10px 0;
         }
         .btn {
             padding: 8px 15px;
@@ -105,38 +120,58 @@
 
         <div id="printError" class="print-status print-error no-print"></div>
 
-        <div class="qr-card">
-            <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image" id="qrImage">
+        <div class="qr-wrapper">
+            <!-- QR Code 1 -->
+            <div class="qr-card">
+                <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image qr-image-1">
+                <div class="agent-name">{{ $agent->name }}</div>
+            </div>
+
+            <!-- QR Code 2 (duplicate) -->
+            <div class="qr-card">
+                <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image qr-image-2">
+                <div class="agent-name">{{ $agent->name }}</div>
+            </div>
         </div>
     </div>
 
     <script>
         // Hiển thị trạng thái khi tải trang
         document.addEventListener('DOMContentLoaded', function() {
-            var qrImage = document.getElementById('qrImage');
+            var qrImages = document.querySelectorAll('.qr-image');
             var loadingIndicator = document.getElementById('loadingIndicator');
             var printButton = document.getElementById('printButton');
             var printError = document.getElementById('printError');
+            var imagesLoaded = 0;
+            var totalImages = qrImages.length;
 
             // Hiển thị đang tải
             loadingIndicator.style.display = 'block';
 
-            // Khi ảnh tải xong
-            if (qrImage.complete) {
-                loadingIndicator.style.display = 'none';
-                initializePrint();
-            } else {
-                qrImage.onload = function() {
-                    loadingIndicator.style.display = 'none';
-                    initializePrint();
-                };
+            // Kiểm tra tất cả ảnh
+            qrImages.forEach(function(img) {
+                if (img.complete) {
+                    imagesLoaded++;
+                    if (imagesLoaded === totalImages) {
+                        loadingIndicator.style.display = 'none';
+                        initializePrint();
+                    }
+                } else {
+                    img.onload = function() {
+                        imagesLoaded++;
+                        if (imagesLoaded === totalImages) {
+                            loadingIndicator.style.display = 'none';
+                            initializePrint();
+                        }
+                    };
 
-                qrImage.onerror = function() {
-                    loadingIndicator.style.display = 'none';
-                    printError.textContent = 'Không thể tải hình ảnh QR. Vui lòng tải lại trang.';
-                    printError.style.display = 'block';
-                };
-            }
+                    img.onerror = function() {
+                        loadingIndicator.style.display = 'none';
+                        printError.textContent = 'Không thể tải hình ảnh QR. Vui lòng tải lại trang.';
+                        printError.style.display = 'block';
+                    };
+                }
+            });
 
             // Khởi tạo chức năng in
             function initializePrint() {

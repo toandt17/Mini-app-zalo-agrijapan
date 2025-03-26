@@ -75,4 +75,52 @@ class AgentQrCode extends Model
             ->orderBy('generated_at', 'desc')
             ->get();
     }
+
+    /**
+     * Lấy tất cả lượt quét của mã QR này
+     */
+    public function scans()
+    {
+        return $this->hasMany(QrCodeScan::class, 'qr_code_id');
+    }
+
+    /**
+     * Cập nhật số lượt quét
+     */
+    public function incrementScanCount($ipAddress, $userAgent)
+    {
+        // Tạo device fingerprint
+        $deviceFingerprint = QrCodeScan::generateDeviceFingerprint($userAgent, $ipAddress);
+
+        // Cập nhật thời gian quét gần nhất
+        $this->last_scanned_at = now();
+
+        // Tăng số lượt quét
+        $this->scan_count = ($this->scan_count ?? 0) + 1;
+
+        // Kiểm tra xem thiết bị này đã quét trước đó chưa - sử dụng fingerprint thay vì chỉ IP
+        $existingScan = $this->scans()
+            ->where('device_fingerprint', $deviceFingerprint)
+            ->exists();
+
+        // Nếu là thiết bị mới, tăng số lượng người quét khác nhau
+        if (!$existingScan) {
+            $this->unique_scan_count = ($this->unique_scan_count ?? 0) + 1;
+        }
+
+        $this->save();
+
+        // Tạo bản ghi lần quét mới
+        $deviceType = QrCodeScan::detectDeviceType($userAgent);
+        $browser = QrCodeScan::detectBrowser($userAgent);
+
+        return $this->scans()->create([
+            'agent_id' => $this->agent_id,
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+            'device_type' => $deviceType,
+            'browser' => $browser,
+            'device_fingerprint' => $deviceFingerprint
+        ]);
+    }
 }

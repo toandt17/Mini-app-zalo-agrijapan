@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->date('checkin_date');
             $table->integer('spin_tickets')->default(1);
             $table->integer('points_earned')->default(0);
+            $table->integer('consecutive_days')->default(0);
             $table->timestamps();
 
             // Foreign key constraint

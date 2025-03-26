@@ -12,7 +12,7 @@ class AgentRepository implements AgentInterface
     protected $agent;
 
     // URL gốc của ứng dụng frontend
-    protected $frontendUrl = 'https://thiepcuoitoandao.id.vn'; // Thay đổi URL thành domain thực tế của bạn
+    protected $frontendUrl = 'https://agrijapanvn.com.vn'; // Thay đổi URL thành domain thực tế của bạn
 
     public function __construct(Agent $agent)
     {
@@ -126,7 +126,7 @@ class AgentRepository implements AgentInterface
             $directViewUrl = url("/agent/qr/{$agent->id}?created={$encodedTimestamp}");
 
             // URL cũ - để tương thích với các mã QR cũ
-            $webUrl = 'https://thiepcuoitoandao.id.vn/agents/' . $agent->id . '?created=' . $encodedTimestamp;
+            $webUrl = 'https://agrijapanvn.com.vn/agents/' . $agent->id . '?created=' . $encodedTimestamp;
 
             // Tạo URL cho Zalo Mini App (obsolete - chúng ta sẽ dùng direct view URL)
             $zaloMiniAppUrl = 'https://zalo.me/s/45775019718875745/?page=/agents/' . $agent->id . '?created=' . $encodedTimestamp;

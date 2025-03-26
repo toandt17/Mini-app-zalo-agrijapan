@@ -26,7 +26,11 @@ class UserMission extends Model
         'user_id',
         'mission_id',
         'completed_at',
-        'spin_tickets_earned'
+        'spin_tickets_earned',
+        'status',
+        'progress',
+        'progress_data',
+        'last_action_at'
     ];
 
     /**

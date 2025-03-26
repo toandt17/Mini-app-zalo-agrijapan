@@ -76,7 +76,10 @@ class AgentController extends Controller
                 ->with('error', 'Không tìm thấy đại lý.');
         }
 
-        return view('admin.agents.show', compact('agent'));
+        // Lấy mã QR mới nhất của đại lý kèm thông tin quét
+        $latestQrCode = $agent->getLatestQrCodeWithScanInfoAttribute();
+
+        return view('admin.agents.show', compact('agent', 'latestQrCode'));
     }
 
     public function edit($id)
@@ -150,7 +153,7 @@ class AgentController extends Controller
                 if ($agent && $agent->qr_code_generated_at) {
                     $formattedTime = $agent->qr_code_generated_at->format('d/m/Y H:i:s');
                     Session::flash('success', 'Đã tạo mã QR mới thành công lúc ' . $formattedTime . '.
-                        Mã QR này sẽ chuyển hướng tới trang thiepcuoitoandao.id.vn/agents/' . $agent->id . '
+                        Mã QR này sẽ chuyển hướng tới trang agrijapanvn.com.vn/agents/' . $agent->id . '
                         và chứa thông tin thời gian tạo (' . $formattedTime . ') để hiển thị cho người dùng khi quét.');
                 } else {
                     Session::flash('success', 'Mã QR mới đã được tạo thành công.');
@@ -547,5 +550,46 @@ class AgentController extends Controller
                 'error_message' => 'Có lỗi xảy ra khi tìm kiếm mã barcode.'
             ]);
         }
+    }
+
+    /**
+     * Hiển thị chi tiết lượt quét mã QR
+     */
+    public function qrScanDetails($id, $qrCodeId)
+    {
+        $agent = $this->agentRepository->findById($id);
+        if (!$agent) {
+            return redirect()->route('admin.agents.index')
+                ->with('error', 'Không tìm thấy đại lý.');
+        }
+
+        $qrCode = \App\Models\AgentQrCode::findOrFail($qrCodeId);
+
+        // Kiểm tra xem mã QR có thuộc về đại lý này không
+        if ($qrCode->agent_id != $id) {
+            return redirect()->route('admin.agents.qr-history', $id)
+                ->with('error', 'Mã QR không thuộc về đại lý này.');
+        }
+
+        // Lấy lịch sử quét với phân trang
+        $scans = \App\Models\QrCodeScan::where('qr_code_id', $qrCodeId)
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        // Thống kê theo loại thiết bị
+        $deviceStats = \App\Models\QrCodeScan::where('qr_code_id', $qrCodeId)
+            ->selectRaw('device_type, count(*) as count')
+            ->groupBy('device_type')
+            ->pluck('count', 'device_type')
+            ->toArray();
+
+        // Thống kê theo trình duyệt
+        $browserStats = \App\Models\QrCodeScan::where('qr_code_id', $qrCodeId)
+            ->selectRaw('browser, count(*) as count')
+            ->groupBy('browser')
+            ->pluck('count', 'browser')
+            ->toArray();
+
+        return view('admin.agents.qr-scan-details', compact('agent', 'qrCode', 'scans', 'deviceStats', 'browserStats'));
     }
 }

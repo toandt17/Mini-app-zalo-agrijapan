@@ -18,37 +18,132 @@ class ZaloUserController extends Controller
      */
     public function saveUser(Request $request)
     {
-        $request->validate([
-            'zaloId' => 'required|string',
-            'name' => 'nullable|string',
-            'avatar' => 'nullable|string',
-            'idByOA' => 'nullable|string',
-            'followedOA' => 'nullable|boolean',
-            'isSensitive' => 'nullable|boolean',
-        ]);
-
         try {
-            $user = User::updateOrCreate(
-                ['zalo_id' => $request->zaloId],
-                [
-                    'name' => $request->name,
-                    'avatar' => $request->avatar,
-                    'id_by_oa' => $request->idByOA,
-                    'followed_oa' => $request->followedOA ?? false,
-                    'is_sensitive' => $request->isSensitive ?? false,
-                    'last_login' => now(),
-                ]
-            );
+            // Validate input
+            $validator = Validator::make($request->all(), [
+                'zaloId' => 'required|string',
+                'name' => 'nullable|string',
+                'avatar' => 'nullable|string',
+                'idByOA' => 'nullable|string',
+                'followedOA' => 'nullable|boolean',
+                'isSensitive' => 'nullable|boolean',
+            ]);
+
+            if ($validator->fails()) {
+                Log::warning('Validation failed for saveUser', [
+                    'errors' => $validator->errors()->toArray(),
+                    'input' => $request->all()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu không hợp lệ',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            Log::info('Saving basic Zalo user info', [
+                'zaloId' => $request->zaloId,
+                'request_data' => $request->except('avatar') // Log tất cả trừ avatar để tránh log quá dài
+            ]);
+
+            // Tìm người dùng hiện tại nếu có
+            $existingUser = User::where('zalo_id', $request->zaloId)->first();
+
+            Log::info('User existence check result', [
+                'zaloId' => $request->zaloId,
+                'exists' => $existingUser ? true : false,
+                'user_id' => $existingUser ? $existingUser->id : null
+            ]);
+
+            // Chuẩn bị dữ liệu cập nhật
+            $userData = [
+                'name' => $request->name,
+                'avatar' => $request->avatar,
+                'id_by_oa' => $request->idByOA,
+                'followed_oa' => $request->followedOA ?? false,
+                'is_sensitive' => $request->isSensitive ?? false,
+                'last_login' => now(),
+            ];
+
+            // Nếu người dùng đã tồn tại, không ghi đè số điện thoại và email
+            if ($existingUser) {
+                try {
+                    // Loại bỏ bất kỳ giá trị null từ dữ liệu cập nhật
+                    $userData = array_filter($userData, function ($value) {
+                        return $value !== null;
+                    });
+
+                    // Cập nhật chỉ các trường cần thiết
+                    $existingUser->fill($userData);
+                    $existingUser->save();
+
+                    $user = $existingUser;
+                    $isNew = false;
+
+                    Log::info('Updated existing user basic info', [
+                        'zalo_id' => $request->zaloId,
+                        'user_id' => $user->id,
+                        'fields_updated' => array_keys($userData)
+                    ]);
+                } catch (\Exception $updateError) {
+                    Log::error('Error updating existing user', [
+                        'zalo_id' => $request->zaloId,
+                        'error' => $updateError->getMessage(),
+                        'exception' => get_class($updateError),
+                        'file' => $updateError->getFile(),
+                        'line' => $updateError->getLine()
+                    ]);
+
+                    throw $updateError;
+                }
+            } else {
+                try {
+                    // Tạo người dùng mới
+                    $user = new User();
+                    $user->zalo_id = $request->zaloId;
+                    $user->fill($userData);
+                    $user->save();
+
+                    $isNew = true;
+
+                    Log::info('Created new user with basic info', [
+                        'zalo_id' => $request->zaloId,
+                        'user_id' => $user->id
+                    ]);
+                } catch (\Exception $createError) {
+                    Log::error('Error creating new user', [
+                        'zalo_id' => $request->zaloId,
+                        'error' => $createError->getMessage(),
+                        'exception' => get_class($createError),
+                        'file' => $createError->getFile(),
+                        'line' => $createError->getLine(),
+                        'trace' => $createError->getTraceAsString()
+                    ]);
+
+                    throw $createError;
+                }
+            }
 
             return response()->json([
                 'success' => true,
-                'user' => $user
+                'message' => $isNew ? 'Đã tạo người dùng mới' : 'Đã cập nhật thông tin người dùng',
+                'user' => $user,
+                'is_new' => $isNew
             ]);
         } catch (\Exception $e) {
-            Log::error('Error saving Zalo user: ' . $e->getMessage());
+            Log::error('Error saving Zalo user: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['avatar'])
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to save user information'
+                'message' => 'Failed to save user information: ' . $e->getMessage(),
+                'error_type' => get_class($e)
             ], 500);
         }
     }
@@ -72,6 +167,13 @@ class ZaloUserController extends Controller
                 ], 400);
             }
 
+            if (empty($request->zaloId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Missing zaloId field'
+                ], 400);
+            }
+
             // Lấy secret key từ .env
             $zaloSecretKey = env('ZALO_SECRET_KEY');
 
@@ -85,7 +187,7 @@ class ZaloUserController extends Controller
 
             // Kiểm tra và log access token
             Log::info('Access token received', [
-                'accessToken' => $request->accessToken,
+                'accessToken' => $request->accessToken ? 'received' : 'missing',
                 'accessToken_length' => $request->accessToken ? strlen($request->accessToken) : 0
             ]);
 
@@ -101,7 +203,7 @@ class ZaloUserController extends Controller
 
                     Log::info('Zalo phone info response', [
                         'status' => $response->status(),
-                        'body' => $response->body()
+                        'body' => substr($response->body(), 0, 200) . '...' // Log một phần để tránh quá dài
                     ]);
 
                     $responseData = $response->json();
@@ -115,26 +217,69 @@ class ZaloUserController extends Controller
                             $phoneNumber = '0' . substr($phoneNumber, 2);
                         }
 
-                        // Lưu vào database
-                        try {
-                            $user = User::where('zalo_id', $request->zaloId)->first();
-                            if ($user) {
-                                $user->phone = $phoneNumber;
-                                $user->save();
-                                Log::info('Updated phone number for user', [
-                                    'zalo_id' => $request->zaloId,
-                                    'phone' => $phoneNumber
-                                ]);
+                        // Chuẩn bị dữ liệu để lưu/cập nhật
+                        $userData = [
+                            'phone' => $phoneNumber,
+                            'last_login' => now()
+                        ];
+
+                        // Thêm thông tin từ request->userData nếu có
+                        if (!empty($request->userData)) {
+                            if (!empty($request->userData['name'])) {
+                                $userData['name'] = $request->userData['name'];
                             }
-                        } catch (\Exception $dbErr) {
-                            Log::error('Error saving phone to DB: ' . $dbErr->getMessage());
+                            if (!empty($request->userData['avatar'])) {
+                                $userData['avatar'] = $request->userData['avatar'];
+                            }
+                            if (isset($request->userData['idByOA'])) {
+                                $userData['id_by_oa'] = $request->userData['idByOA'];
+                            }
+                            if (isset($request->userData['followedOA'])) {
+                                $userData['followed_oa'] = $request->userData['followedOA'];
+                            }
                         }
 
-                        return response()->json([
-                            'success' => true,
-                            'message' => 'Lấy số điện thoại thành công',
-                            'phone' => $phoneNumber
-                        ]);
+                        // Lưu tất cả thông tin vào database trong một lần
+                        try {
+                            $user = User::updateOrCreate(
+                                ['zalo_id' => $request->zaloId],
+                                $userData
+                            );
+
+                            Log::info('Saved/updated user with all information in one go', [
+                                'zalo_id' => $request->zaloId,
+                                'phone' => $phoneNumber,
+                                'is_new' => $user->wasRecentlyCreated
+                            ]);
+
+                            // Trả về thông tin người dùng
+                            return response()->json([
+                                'success' => true,
+                                'message' => $user->wasRecentlyCreated
+                                    ? 'Đã tạo người dùng mới với số điện thoại'
+                                    : 'Đã cập nhật thông tin người dùng với số điện thoại',
+                                'phone' => $phoneNumber,
+                                'user' => [
+                                    'id' => $user->id,
+                                    'name' => $user->name,
+                                    'email' => $user->email,
+                                    'phone' => $user->phone,
+                                    'is_new' => $user->wasRecentlyCreated
+                                ]
+                            ]);
+                        } catch (\Exception $dbErr) {
+                            Log::error('Error saving user data to DB: ' . $dbErr->getMessage(), [
+                                'exception' => get_class($dbErr),
+                                'file' => $dbErr->getFile(),
+                                'line' => $dbErr->getLine()
+                            ]);
+
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Lỗi khi lưu thông tin người dùng: ' . $dbErr->getMessage(),
+                                'phone' => $phoneNumber // Vẫn trả về số điện thoại dù có lỗi
+                            ], 500);
+                        }
                     } else {
                         return response()->json([
                             'success' => false,
@@ -160,7 +305,11 @@ class ZaloUserController extends Controller
                 ]);
             }
         } catch (\Throwable $e) {
-            Log::error('General error: ' . $e->getMessage());
+            Log::error('General error: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
 
             return response()->json([
                 'success' => false,
@@ -323,6 +472,219 @@ class ZaloUserController extends Controller
                 'success' => false,
                 'message' => 'Đã xảy ra lỗi không mong muốn: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * Cập nhật thông tin profile của người dùng
+     */
+    public function updateProfile(Request $request)
+    {
+        try {
+            // Validate input
+            $validator = Validator::make($request->all(), [
+                'zaloId' => 'required|string',
+                'email' => 'nullable|email',
+                'phone' => 'nullable|string',
+                'name' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu không hợp lệ',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Tìm user bằng zaloId
+            $user = User::where('zalo_id', $request->zaloId)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy người dùng'
+                ], 404);
+            }
+
+            // Cập nhật thông tin nếu có
+            if ($request->has('email')) {
+                $user->email = $request->email;
+            }
+
+            if ($request->has('name')) {
+                $user->name = $request->name;
+            }
+
+            // Cập nhật số điện thoại nếu được gửi lên
+            if ($request->has('phone') && !empty($request->phone)) {
+                // Chuẩn hóa số điện thoại (nếu cần)
+                $phone = $request->phone;
+                if (str_starts_with($phone, '+84')) {
+                    $phone = '0' . substr($phone, 3);
+                }
+                $user->phone = $phone;
+            }
+
+            // Lưu thông tin vào database
+            $user->save();
+
+            // Log thông tin cập nhật
+            Log::info('Updated user profile', [
+                'zalo_id' => $request->zaloId,
+                'email' => $request->email,
+                'phone' => $request->phone ?? 'not updated'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật thông tin thành công',
+                'user' => [
+                    'id' => $user->id,
+                    'zalo_id' => $user->zalo_id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error updating user profile: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy thông tin người dùng dựa vào số điện thoại
+     */
+    public function getUserByPhone(Request $request)
+    {
+        try {
+            // Validate input
+            $validator = Validator::make($request->all(), [
+                'phone' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu không hợp lệ',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Chuẩn hóa số điện thoại (loại bỏ +84 nếu có)
+            $phone = $request->phone;
+            if (str_starts_with($phone, '+84')) {
+                $phone = '0' . substr($phone, 3);
+            }
+
+            // Tìm user bằng số điện thoại
+            $user = User::where('phone', $phone)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy người dùng với số điện thoại này',
+                    'phone' => $phone
+                ], 404);
+            }
+
+            // Trả về thông tin người dùng
+            return response()->json([
+                'success' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'zalo_id' => $user->zalo_id,
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error getting user by phone: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy thông tin người dùng dựa vào zaloId
+     */
+    public function getUserByZaloId(Request $request)
+    {
+        try {
+            // Validate input
+            $validator = Validator::make($request->all(), [
+                'zaloId' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu không hợp lệ',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Log thông tin request
+            Log::info('getUserByZaloId request', [
+                'zaloId' => $request->zaloId
+            ]);
+
+            // Tìm user bằng zaloId
+            $user = User::where('zalo_id', $request->zaloId)->first();
+
+            if (!$user) {
+                Log::warning('User not found with zaloId', ['zaloId' => $request->zaloId]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy người dùng với Zalo ID này',
+                    'zaloId' => $request->zaloId
+                ], 404);
+            }
+
+            // Log thông tin người dùng tìm thấy
+            Log::info('User found with zaloId', [
+                'zaloId' => $request->zaloId,
+                'user_id' => $user->id
+            ]);
+
+            // Trả về thông tin người dùng
+            return response()->json([
+                'success' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'zalo_id' => $user->zalo_id,
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                    'followed_oa' => $user->followed_oa,
+                    'id_by_oa' => $user->id_by_oa,
+                    'is_sensitive' => $user->is_sensitive,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error getting user by zaloId: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -26,6 +26,7 @@ class DailyCheckin extends Model
         'user_id',
         'checkin_date',
         'spin_tickets',
+        'consecutive_days',
         'points_earned'
     ];
 

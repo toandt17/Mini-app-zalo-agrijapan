@@ -25,7 +25,7 @@ Artisan::command('inspire', function () {
 // Thêm lệnh tạo QR cho đại lý
 Artisan::command('agents:generate-qr {agentId?}', function ($agentId = null) {
     // URL frontend
-    $frontendUrl = 'https://thiepcuoitoandao.id.vn';
+    $frontendUrl = 'https://agrijapanvn.com.vn';
 
     // Tạo thư mục lưu mã QR nếu chưa tồn tại
     if (!Storage::exists('public/qrcodes')) {

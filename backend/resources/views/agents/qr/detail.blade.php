@@ -316,14 +316,24 @@
 
                 @if(isset($qrCreatedFormatted))
                 <div class="qr-info">
-                    <p><i class="fas fa-qrcode"></i> <strong>Mã QR được tạo lúc:</strong> {{ $qrCreatedFormatted }}</p>
+                    <p><i class="fas fa-qrcode"></i> <strong>Thời gian tạo QR:</strong> {{ $qrCreatedFormatted }}</p>
                     <p class="text-muted"><small><i class="fas fa-clock"></i> Thời gian quét: {{ now()->format('d/m/Y H:i:s') }}</small></p>
 
-                    @if(isset($qrSource) && $qrSource == 'database')
-                        <div class="mt-2">
-                            <span class="badge bg-info">Mã QR từ cơ sở dữ liệu</span>
-                            @if(isset($qrIsActive) && !$qrIsActive)
-                                <span class="badge bg-warning text-dark">Mã QR đã bị vô hiệu hóa</span>
+                    @if(isset($qrCode) && $qrCode)
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div>
+                                <span class="badge bg-primary">Lượt quét: {{ $scan_count }}</span>
+                                <span class="badge bg-info ms-1">Số người quét: {{ $unique_scan_count }}</span>
+                            </div>
+
+                            @if(isset($qrSource) && $qrSource == 'database')
+                                <div>
+                                    @if(isset($qrIsActive) && !$qrIsActive)
+                                        <span class="badge bg-warning text-dark">Mã QR đã bị vô hiệu hóa</span>
+                                    @else
+                                        <span class="badge bg-success">Mã QR hợp lệ</span>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                     @elseif(isset($qrSource) && $qrSource == 'legacy')

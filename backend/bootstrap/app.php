@@ -38,10 +38,18 @@ return Application::configure(basePath: dirname(__DIR__))
             ];
 
             foreach ($adminRoutes as $route){
-                Route::middleware('web')
-                     ->prefix('admin')
-                     ->name('admin.')
-                     ->group(base_path("routes/admin/{$route}"));
+                // Đường dẫn login không yêu cầu xác thực, các đường dẫn khác yêu cầu xác thực
+                if ($route === 'admin.php') {
+                    Route::middleware('web')
+                        ->prefix('admin')
+                        ->name('admin.')
+                        ->group(base_path("routes/admin/{$route}"));
+                } else {
+                    Route::middleware(['web', 'admin.auth'])
+                        ->prefix('admin')
+                        ->name('admin.')
+                        ->group(base_path("routes/admin/{$route}"));
+                }
             }
 
             foreach ($clientRoutes as $route){
@@ -60,6 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware){
         $middleware->alias([
             'cors' => \App\Http\Middleware\Cors::class, // Đảm bảo middleware CORS được alias
+            'admin.auth' => \App\Http\Middleware\AdminAuthentication::class, // Thêm middleware xác thực admin
         ]);
         //
         // $middleware->alias([

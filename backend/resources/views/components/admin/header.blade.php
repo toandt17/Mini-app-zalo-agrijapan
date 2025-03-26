@@ -241,9 +241,12 @@
                                 <a class="dropdown-item" href="profile.html">
                                     <i class="fe fe-compass"></i> Activity
                                 </a>
-                                <a class="dropdown-item" href="signin.html">
-                                    <i class="fe fe-power"></i> Sign Out
-                                </a>
+                                <form action="{{ route('admin.logout') }}" method="POST" id="logout-form">
+                                    @csrf
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="document.getElementById('logout-form').submit();">
+                                        <i class="fe fe-power"></i> Đăng xuất
+                                    </a>
+                                </form>
                             </div>
                         </div><!-- profile -->
                         <div class="dropdown d-flex header-settings">

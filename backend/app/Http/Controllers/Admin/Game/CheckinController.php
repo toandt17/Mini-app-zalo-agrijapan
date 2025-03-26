@@ -61,8 +61,9 @@ class CheckinController extends Controller
     public function settings()
     {
         $settings = $this->checkinRepository->getCheckinSettings();
+        $rewards = $this->checkinRepository->getCheckinRewards();
 
-        return view('admin.game.checkin.settings', compact('settings'));
+        return view('admin.game.checkin.settings', compact('settings', 'rewards'));
     }
 
     /**
@@ -74,20 +75,84 @@ class CheckinController extends Controller
     public function saveSettings(Request $request)
     {
         $request->validate([
-            'points_reward' => 'required|integer|min:0',
-            'spin_tickets_reward' => 'required|integer|min:0'
+            'points_reward' => 'sometimes|integer|min:0',
+            'spin_tickets_reward' => 'sometimes|integer|min:0',
+            'rewards' => 'sometimes|array',
+            'rewards.*.day' => 'required|integer|min:1|max:7',
+            'rewards.*.points' => 'required|integer|min:0',
+            'rewards.*.spin_tickets' => 'required|integer|min:0',
+            'rewards.*.name' => 'sometimes|nullable|string|max:100',
         ]);
 
-        $settings = $request->only([
-            'points_reward',
-            'spin_tickets_reward',
-            'consecutive_bonus'
-        ]);
+        // Lưu cài đặt cơ bản (nếu có)
+        if ($request->has('points_reward') && $request->has('spin_tickets_reward')) {
+            $settings = [
+                'points_reward' => $request->input('points_reward'),
+                'spin_tickets_reward' => $request->input('spin_tickets_reward'),
+                'consecutive_bonus' => 0 // Mặc định tắt tính năng này vì đã bỏ khỏi form
+            ];
 
-        // Chuyển đổi checkbox consecutive_bonus
-        $settings['consecutive_bonus'] = isset($settings['consecutive_bonus']) ? 1 : 0;
+            $this->checkinRepository->updateCheckinSettings($settings);
+        }
 
-        $this->checkinRepository->updateCheckinSettings($settings);
+        // Xử lý và lưu phần thưởng theo ngày
+        if ($request->has('rewards')) {
+            $rewards = [];
+
+            foreach ($request->rewards as $dayData) {
+                $day = $dayData['day'];
+                $points = (int)$dayData['points'];
+                $spinTickets = (int)$dayData['spin_tickets'];
+                $providedName = isset($dayData['name']) ? trim($dayData['name']) : '';
+
+                // Sử dụng tên được cung cấp nếu có, ngược lại tạo tên tự động
+                if (!empty($providedName)) {
+                    $name = $providedName;
+                } else {
+                    // Tạo tên hiển thị tự động dựa trên điểm và lượt quay
+                    $name = '';
+                    if ($points > 0) {
+                        $name .= $points . ' điểm';
+                    }
+
+                    if ($points > 0 && $spinTickets > 0) {
+                        $name .= ' + ';
+                    }
+
+                    if ($spinTickets > 0) {
+                        $name .= $spinTickets . ' lượt quay';
+                    }
+
+                    if (empty($name)) {
+                        $name = 'Không có phần thưởng';
+                    }
+                }
+
+                $rewards[] = [
+                    'day' => (int)$day,
+                    'name' => $name,
+                    'points' => $points,
+                    'spin_tickets' => $spinTickets
+                ];
+            }
+
+            // Sắp xếp rewards theo thứ tự ngày
+            usort($rewards, function($a, $b) {
+                return $a['day'] - $b['day'];
+            });
+
+            try {
+                $saveResult = $this->checkinRepository->saveCheckinRewards($rewards);
+
+                if (!$saveResult) {
+                    return redirect()->route('admin.checkin.settings')
+                        ->with('error', 'Lỗi khi lưu cài đặt phần thưởng. Kiểm tra quyền ghi file hoặc đường dẫn.');
+                }
+            } catch (\Exception $e) {
+                return redirect()->route('admin.checkin.settings')
+                    ->with('error', 'Lỗi khi lưu cài đặt: ' . $e->getMessage());
+            }
+        }
 
         return redirect()->route('admin.checkin.settings')
             ->with('success', 'Cài đặt điểm danh đã được cập nhật thành công.');

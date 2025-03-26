@@ -118,10 +118,10 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover mg-b-0">
+                                <table id="file-datatable" class="table table-bordered text-nowrap key-buttons border-bottom">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th>STT</th>
                                             <th>Ngày điểm danh</th>
                                             <th>Điểm nhận được</th>
                                             <th>Vé quay nhận được</th>
@@ -130,7 +130,7 @@
                                     <tbody>
                                         @forelse($checkins as $checkin)
                                         <tr>
-                                            <td>{{ $checkin->id }}</td>
+                                            <td>{{ $loop->iteration }}</td>
                                             <td>{{ \Carbon\Carbon::parse($checkin->checkin_date)->format('d/m/Y H:i:s') }}</td>
                                             <td class="text-success">+{{ number_format($checkin->points_earned) }}</td>
                                             <td class="text-warning">+{{ number_format($checkin->spin_tickets) }}</td>
@@ -142,10 +142,6 @@
                                         @endforelse
                                     </tbody>
                                 </table>
-                            </div>
-
-                            <div class="mt-4">
-                                {{ $checkins->appends(request()->except('page'))->links() }}
                             </div>
                         </div>
                     </div>
@@ -292,6 +288,56 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         document.getElementById('userCheckinChart').innerHTML = '<div class="text-center p-5 text-muted">Không có dữ liệu để hiển thị biểu đồ</div>';
     }
+
+    // Khởi tạo DataTable với các nút xuất dữ liệu
+    var table = $('#file-datatable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copyHtml5',
+                text: '<i class="fe fe-copy"></i> Sao chép',
+                titleAttr: 'Sao chép dữ liệu',
+                className: 'btn btn-primary btn-sm'
+            },
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fe fe-file-text"></i> Excel',
+                titleAttr: 'Xuất Excel',
+                className: 'btn btn-success btn-sm'
+            },
+            {
+                extend: 'pdfHtml5',
+                text: '<i class="fe fe-file"></i> PDF',
+                titleAttr: 'Xuất PDF',
+                className: 'btn btn-danger btn-sm'
+            },
+            {
+                extend: 'colvis',
+                text: '<i class="fe fe-eye"></i> Hiển thị',
+                titleAttr: 'Hiển thị/ẩn cột',
+                className: 'btn btn-info btn-sm'
+            }
+        ],
+        responsive: true,
+        language: {
+            searchPlaceholder: 'Tìm kiếm...',
+            sSearch: '',
+            lengthMenu: '_MENU_ dòng/trang',
+            paginate: {
+                first: "Đầu tiên",
+                previous: "Trước",
+                next: "Tiếp",
+                last: "Cuối cùng"
+            },
+            info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+            infoEmpty: "Hiển thị 0 đến 0 của 0 mục",
+            infoFiltered: "(lọc từ _MAX_ mục)",
+            zeroRecords: "Không tìm thấy dữ liệu phù hợp",
+            emptyTable: "Không có dữ liệu"
+        },
+        pageLength: 10,
+        ordering: true
+    });
 });
 </script>
 @endpush
