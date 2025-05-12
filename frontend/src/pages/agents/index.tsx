@@ -10,7 +10,7 @@ import { toast } from 'react-hot-toast';
 import { Icon } from 'zmp-ui';
 
 const apiClient = axios.create({
-  baseURL: 'https://thiepcuoitoandao.id.vn',
+  baseURL: 'https://agrijapanvn.com.vn',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -171,7 +171,7 @@ const AgentsPage: React.FC = () => {
           // Gửi token vị trí đến backend để xử lý
           const response = await axios({
             method: 'post',
-            url: 'https://thiepcuoitoandao.id.vn/zalo/process-location-token',
+            url: 'https://agrijapanvn.com.vn/zalo/process-location-token',
             data: {
               token: locationResult.token,
               accessToken: accessToken,

@@ -225,7 +225,7 @@
 <body>
     <div class="header">
         <div class="container">
-            <h2 class="mb-0">Chi tiết đại lý</h2>
+            <h2 class="mb-0">Thông tin AgriJapan</h2>
         </div>
     </div>
 
@@ -233,10 +233,10 @@
         <div class="agent-container">
             <div class="agent-header">
                 @if($agent->image)
-                    <img src="{{ asset('storage/' . $agent->image) }}" alt="{{ $agent->name }}" class="agent-image">
+                    <img src="{{ asset('storage/' . $agent->image) }}" alt="AgriJapan" class="agent-image">
                 @else
                     <div class="agent-image-placeholder">
-                        <i class="fas fa-store"></i>
+                        <i class="fas fa-building"></i>
                     </div>
                 @endif
             </div>
@@ -244,8 +244,8 @@
             <div class="agent-body">
                 <div class="d-flex justify-content-between align-items-start">
                     <h1 class="agent-name">
-                        <i class="fas fa-store"></i>
-                        {{ $agent->name }}
+                        <i class="fas fa-building"></i>
+                        AgriJapan
                     </h1>
 
                     @if($agent->status == 'active')
@@ -259,11 +259,31 @@
                     <div class="contact-info">
                         <div class="info-item">
                             <div class="info-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="info-content">
+                                <strong>Công ty:</strong><br>
+                                AgriJapan
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
                                 <i class="fas fa-map-marker-alt"></i>
                             </div>
                             <div class="info-content">
                                 <strong>Địa chỉ:</strong><br>
-                                {{ $agent->full_address }}
+                                A2-12, Đường Số 2, KDC Long Thịnh, Thạnh Lợi, Phú Thứ, Cái Răng, Cần Thơ
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="info-content">
+                                <strong>Email:</strong><br>
+                                <a href="mailto:agrijapan2016@gmail.com">agrijapan2016@gmail.com</a>
                             </div>
                         </div>
 
@@ -273,21 +293,9 @@
                             </div>
                             <div class="info-content">
                                 <strong>Điện thoại:</strong><br>
-                                <a href="tel:{{ $agent->phone }}">{{ $agent->phone }}</a>
+                                <a href="tel:0868683689">0868 683 689</a>
                             </div>
                         </div>
-
-                        @if($agent->open_hours)
-                        <div class="info-item">
-                            <div class="info-icon">
-                                <i class="far fa-clock"></i>
-                            </div>
-                            <div class="info-content">
-                                <strong>Giờ mở cửa:</strong><br>
-                                {{ $agent->open_hours }}
-                            </div>
-                        </div>
-                        @endif
 
                         <!-- Hiển thị mã barcode nhỏ gọn -->
                         @if(isset($agent) && $agent->latest_barcode)
@@ -305,8 +313,15 @@
                     </div>
                 </div>
 
+                <!-- Thêm nút Zalo OA -->
+                <div class="text-center mt-3">
+                    <a href="https://oauth.zaloapp.com/v4/permission?app_id=1684715619970753240&redirect_uri=https://agrijapanvn.com.vn/zalo/callback" target="_blank" class="btn btn-primary" style="background-color: #0068ff; border-color: #0068ff;"></a>
+                        <i class="fab fa-zalo"></i> Chat Zalo với AgriJapan
+                    </a>
+                </div>
+
                 @if($agent->description)
-                <div class="description-box">
+                <div class="description-box"></div>
                     <div class="description-title">
                         <i class="fas fa-info-circle"></i> Thông tin
                     </div>
@@ -346,9 +361,9 @@
 
                 @if($agent->latitude && $agent->longitude)
                 <div class="map-container" id="map"></div>
-                <a href="https://www.google.com/maps/dir/?api=1&destination={{ $agent->latitude }},{{ $agent->longitude }}"
+                <a href="https://maps.app.goo.gl/SsAMH6NGj5uDtKMN8"
                    class="btn btn-primary btn-directions" target="_blank">
-                    <i class="fas fa-directions"></i> Chỉ đường đến đại lý
+                    <i class="fas fa-directions"></i> Chỉ đường đến công ty
                 </a>
                 @endif
             </div>

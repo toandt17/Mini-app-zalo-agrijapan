@@ -9,7 +9,7 @@ import { useAtomValue } from 'jotai';
 import { gameHistoryState } from '@/state';
 
 const apiClient = axios.create({
-  baseURL: 'https://thiepcuoitoandao.id.vn',
+  baseURL: 'https://agrijapanvn.com.vn',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -357,7 +357,7 @@ export default function AccountProfilePage() {
       try {
         const response = await axios({
           method: 'post',
-          url: 'https://thiepcuoitoandao.id.vn/zalo/process-phone-token',
+          url: 'https://agrijapanvn.com.vn/zalo/process-phone-token',
           data: {
             zaloId: currentZaloId,
             token: result.token,

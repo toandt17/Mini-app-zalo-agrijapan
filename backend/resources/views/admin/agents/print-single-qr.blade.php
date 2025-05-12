@@ -6,7 +6,7 @@
     <title>In mã QR - {{ $agent->name }}</title>
     <style>
         @page {
-            size: 35cm 22cm;
+            size: 105mm 22mm;  /* 35mm x 3 = 105mm */
             margin: 0;
         }
         body {
@@ -14,46 +14,66 @@
             margin: 0;
             padding: 0;
             text-align: center;
-            width: 35cm;
-            height: 22cm;
+            width: 105mm;
+            height: 22mm;
         }
         .container {
             width: 100%;
             height: 100%;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             padding: 0;
             margin: 0;
         }
-        .qr-wrapper {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            flex-wrap: wrap;
-        }
-        .qr-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            width: 15cm;
-            height: 18cm;
-            margin: 0.5cm;
+        .qr-section {
+            width: 35mm;
+            height: 22mm;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            align-items: flex-start;
+            padding: 2mm;
+            box-sizing: border-box;
+        }
+        .qr-pair {
+            display: flex;
+            justify-content: center;
+            gap: 6mm;
+            margin: 0 auto;
+        }
+        .qr-card {
+            width: 13mm;
+            height: 13mm;
+            display: flex;
+            justify-content: center;
             align-items: center;
+            margin: 0;
+            padding: 0;
         }
         .qr-image {
-            width: 12cm;
-            height: 12cm;
-            margin: 0 auto 15px;
+            width: 13mm;
+            height: 13mm;
+            margin: 0;
+            padding: 0;
+        }
+        .qr-text {
+            font-size: 9px;
+            margin-top: 2mm;
+            margin-left: 1mm;
+            text-align: left;
+            font-weight: bold;
+            width: 32mm;
+            display: inline-block;
+            letter-spacing: 0.2px;
         }
         .agent-name {
-            font-size: 18px;
+            font-size: 5px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-top: 1mm;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 13mm;
         }
         .agent-info {
             font-size: 14px;
@@ -120,18 +140,43 @@
 
         <div id="printError" class="print-status print-error no-print"></div>
 
-        <div class="qr-wrapper">
-            <!-- QR Code 1 -->
-            <div class="qr-card">
-                <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image qr-image-1">
-                <div class="agent-name">{{ $agent->name }}</div>
+        <!-- Section 1 -->
+        <div class="qr-section">
+            <div class="qr-pair">
+                <div class="qr-card">
+                    <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image">
+                </div>
+                <div class="qr-card">
+                    <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image">
+                </div>
             </div>
+            <div class="qr-text">QR Bảo chứng chất lượng</div>
+        </div>
 
-            <!-- QR Code 2 (duplicate) -->
-            <div class="qr-card">
-                <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image qr-image-2">
-                <div class="agent-name">{{ $agent->name }}</div>
+        <!-- Section 2 -->
+        <div class="qr-section">
+            <div class="qr-pair">
+                <div class="qr-card">
+                    <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image">
+                </div>
+                <div class="qr-card">
+                    <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image">
+                </div>
             </div>
+            <div class="qr-text">QR Bảo chứng chất lượng</div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="qr-section">
+            <div class="qr-pair">
+                <div class="qr-card">
+                    <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image">
+                </div>
+                <div class="qr-card">
+                    <img src="{{ asset($agent->qr_code) }}" alt="QR Code" class="qr-image">
+                </div>
+            </div>
+            <div class="qr-text">QR Bảo chứng chất lượng</div>
         </div>
     </div>
 

@@ -229,7 +229,7 @@ export const luckyWheelState = atom<LuckyWheelData>({
 
 export const luckyWheelDataState = atom(async (get) => {
   try {
-    const response = await axios.get('https://thiepcuoitoandao.id.vn/games/lucky_wheel');
+    const response = await axios.get('https://agrijapanvn.com.vn/games/lucky_wheel');
     console.log("Lucky Wheel API Data:", response.data);
     
     if (response.data && Array.isArray(response.data.lucky_wheel)) {

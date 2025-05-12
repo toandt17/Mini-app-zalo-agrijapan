@@ -20,13 +20,14 @@ Route::post('/zalo/process-location-token', [ZaloUserController::class, 'process
 Route::post('/users/update-profile', [ZaloUserController::class, 'updateProfile']);
 Route::post('/users/get-by-phone', [ZaloUserController::class, 'getUserByPhone']);
 Route::post('/users/get-by-zalo-id', [ZaloUserController::class, 'getUserByZaloId']);
+Route::post('/zalo/callback', [ZaloUserController::class, 'handleOAuthCallback'])->name('zalo.oauth.callback');
 // Các route cho đại lý
 Route::get('/agents', [AgentController::class, 'index']);
 Route::get('/agents/{id}', [AgentController::class, 'show']);
 Route::post('/agents/nearest', [AgentController::class, 'findNearest']);
 // Route để xử lý khi quét mã QR cho API backend
 Route::get('/agent/detail/{id}', [QrCodeController::class, 'showAgentDetail'])->name('agent.detail');
-// Lưu ý: Route frontend /agents/:id xử lý bởi front-end (thiepcuoitoandao.id.vn)
+// Lưu ý: Route frontend /agents/:id xử lý bởi front-end (agrijapanvn.com.vn)
 
 // Các route cho QR Code
 Route::get('/qrcode/info', [QrCodeController::class, 'getQrInfo']);

@@ -12,7 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class CheckinRepository implements CheckinInterface
 {
     // Đường dẫn file lưu cài đặt
-    protected $configPath = 'config/checkin_settings.json';
+    protected $configPath;
 
     // Cài đặt mặc định
     protected $defaultSettings = [
@@ -27,8 +27,9 @@ class CheckinRepository implements CheckinInterface
 
     public function __construct()
     {
-        $this->settingsPath = 'config/checkin_settings.json';
-        $this->rewardsPath = 'config/checkin_rewards.json';
+        $this->configPath = base_path('config/checkin_settings.json');
+        $this->settingsPath = base_path('config/checkin_settings.json');
+        $this->rewardsPath = base_path('config/checkin_rewards.json');
     }
 
     /**

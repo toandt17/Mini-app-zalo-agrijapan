@@ -687,4 +687,178 @@ class ZaloUserController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Xử lý callback từ Zalo OAuth
+     */
+    public function handleOAuthCallback(Request $request)
+    {
+        try {
+            // Log toàn bộ request để debug
+            Log::info('Zalo OAuth callback received', [
+                'request_data' => $request->all(),
+                'headers' => $request->headers->all(),
+                'method' => $request->method(),
+                'url' => $request->url(),
+                'query_string' => $request->getQueryString(),
+                'full_url' => $request->fullUrl()
+            ]);
+
+            // Kiểm tra code từ Zalo
+            if (!$request->has('code')) {
+                Log::error('No code received from Zalo OAuth');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không nhận được mã xác thực từ Zalo'
+                ], 400);
+            }
+
+            $code = $request->get('code');
+            $appId = env('ZALO_APP_ID');
+            $secretKey = env('ZALO_SECRET_KEY');
+
+            // Log thông tin request
+            Log::info('Preparing OAuth request', [
+                'app_id' => $appId,
+                'code' => $code,
+                'secret_key_length' => strlen($secretKey),
+                'callback_url' => route('zalo.oauth.callback'),
+                'current_url' => $request->fullUrl()
+            ]);
+
+            // Gọi API Zalo để lấy access token
+            $response = Http::post('https://oauth.zaloapp.com/v4/access_token', [
+                'code' => $code,
+                'app_id' => $appId,
+                'grant_type' => 'authorization_code',
+                'client_secret' => $secretKey
+            ]);
+
+            $responseBody = $response->json();
+
+            Log::info('Zalo access token response', [
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body' => $responseBody
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('Failed to get access token from Zalo', [
+                    'status' => $response->status(),
+                    'error' => $responseBody
+                ]);
+
+                // Xử lý lỗi 14003
+                if (isset($responseBody['error']) && $responseBody['error'] == 14003) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Lỗi xác thực: Mã code không hợp lệ hoặc đã hết hạn',
+                        'error_code' => 14003,
+                        'debug_info' => [
+                            'code' => $code,
+                            'app_id' => $appId,
+                            'callback_url' => route('zalo.oauth.callback'),
+                            'current_url' => $request->fullUrl(),
+                            'request_data' => $request->all()
+                        ]
+                    ], 400);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không thể lấy access token từ Zalo: ' . ($responseBody['message'] ?? 'Unknown error'),
+                    'error_code' => $responseBody['error'] ?? 'unknown',
+                    'debug_info' => $responseBody
+                ], 500);
+            }
+
+            // Kiểm tra dữ liệu token
+            if (!isset($responseBody['access_token']) || !isset($responseBody['user_id'])) {
+                Log::error('Invalid token data received', ['token_data' => $responseBody]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu token không hợp lệ',
+                    'debug_info' => $responseBody
+                ], 500);
+            }
+
+            $accessToken = $responseBody['access_token'];
+            $userId = $responseBody['user_id'];
+
+            Log::info('Token data received', [
+                'user_id' => $userId,
+                'access_token_length' => strlen($accessToken)
+            ]);
+
+            // Gọi API Zalo để lấy thông tin người dùng
+            $userResponse = Http::withHeaders([
+                'access_token' => $accessToken
+            ])->get('https://graph.zalo.me/v2.0/me/info');
+
+            $userData = $userResponse->json();
+
+            Log::info('Zalo user info response', [
+                'status' => $userResponse->status(),
+                'headers' => $userResponse->headers(),
+                'body' => $userData
+            ]);
+
+            if (!$userResponse->successful()) {
+                Log::error('Failed to get user info from Zalo', [
+                    'status' => $userResponse->status(),
+                    'error' => $userData
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không thể lấy thông tin người dùng từ Zalo: ' . ($userData['message'] ?? 'Unknown error'),
+                    'error_code' => $userData['error'] ?? 'unknown',
+                    'debug_info' => $userData
+                ], 500);
+            }
+
+            // Lưu hoặc cập nhật thông tin người dùng
+            $user = User::updateOrCreate(
+                ['zalo_id' => $userId],
+                [
+                    'name' => $userData['name'] ?? null,
+                    'avatar' => $userData['picture'] ?? null,
+                    'id_by_oa' => $userData['id'] ?? null,
+                    'followed_oa' => $userData['followed'] ?? false,
+                    'last_login' => now()
+                ]
+            );
+
+            Log::info('User data saved/updated', [
+                'user_id' => $user->id,
+                'zalo_id' => $userId,
+                'user_data' => $userData
+            ]);
+
+            // Chuyển hướng về trang chủ hoặc trang profile
+            return redirect()->to('http://thiepcuoitoandao.id.vn/profile');
+
+        } catch (\Exception $e) {
+            Log::error('Error in Zalo OAuth callback: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+                'full_url' => $request->fullUrl()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi: ' . $e->getMessage(),
+                'debug_info' => [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'request_data' => $request->all(),
+                    'full_url' => $request->fullUrl()
+                ]
+            ], 500);
+        }
+    }
 }

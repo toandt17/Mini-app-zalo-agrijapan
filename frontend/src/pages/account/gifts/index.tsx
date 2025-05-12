@@ -35,7 +35,7 @@ const UserGiftsPage: React.FC = () => {
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
 
   const ZALO_OA_ID = "4595954910489503839";
-  const BASE_URL = "https://thiepcuoitoandao.id.vn/storage";
+  const BASE_URL = "https://agrijapanvn.com.vn/storage";
 
   // Hàm xử lý URL hình ảnh
   const getImageUrl = (imagePath: string) => {
